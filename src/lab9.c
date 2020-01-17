@@ -14,6 +14,11 @@ All rights reserved.
 #include <string.h>
 #include "server.h"
 
+#ifndef _WIN32
+#else
+#include "windows-string.h"
+#endif
+
 /* data for each of the 5 riddle givers */
 int guesser[RIDDLEGIVERS] = { 0 };
 int riddleno[RIDDLEGIVERS] = { 0 };

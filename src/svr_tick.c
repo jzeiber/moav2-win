@@ -11,7 +11,11 @@ All rights reserved.
 #include <ctype.h>
 #include <string.h>
 #include <time.h>
+#ifndef _WIN32
 #include <unistd.h>
+#else
+#include <ws2tcpip.h>
+#endif
 
 #ifdef ONLINE
 #include <crypt.h>
@@ -31,7 +35,11 @@ static char intro_msg3[]={"\n"};
 static char intro_msg4[]={"Use #help (or /help) to get a listing of the text commands.\n"};
 //static char intro_msg4[]={"WARNING: Lag scrolls will only work if used not later than four minutes after lagging out!\n"};
 
-static inline unsigned int _mcmp(unsigned char *a,unsigned char *b,unsigned int len)
+static 
+#ifndef _WIN32
+	inline
+#endif
+unsigned int _mcmp(unsigned char *a,unsigned char *b,unsigned int len)
 {
 	// align a
 	while (len>0 && ((int)(a)&3)) {
@@ -52,12 +60,20 @@ static inline unsigned int _mcmp(unsigned char *a,unsigned char *b,unsigned int 
 }
 
 // some magic to avoid a lot of casts
-static inline unsigned int mcmp(void *a,void *b,unsigned int len)
+static 
+#ifndef _WIN32
+inline
+#endif
+unsigned int mcmp(void *a,void *b,unsigned int len)
 {
 	return _mcmp(a,b,len);
 }
 
-static inline void *_fdiff(unsigned char *a,unsigned char *b,unsigned int len)
+static
+#ifndef _WIN32
+inline
+#endif
+void *_fdiff(unsigned char *a,unsigned char *b,unsigned int len)
 {
 	// align a
 	while (len>0 && ((int)(a)&3)) {
@@ -81,12 +97,20 @@ static inline void *_fdiff(unsigned char *a,unsigned char *b,unsigned int len)
 }
 
 // some magic to avoid a lot of casts
-static inline void *fdiff(void *a,void *b,unsigned int len)
+static
+#ifndef _WIN32
+inline
+#endif
+void *fdiff(void *a,void *b,unsigned int len)
 {
 	return _fdiff(a,b,len);
 }
 
-static inline unsigned int _mcpy(unsigned char *a,unsigned char *b,unsigned int len)
+static
+#ifndef _WIN32
+inline
+#endif
+unsigned int _mcpy(unsigned char *a,unsigned char *b,unsigned int len)
 {
 	// align a
 	while (len>0 && ((int)(a)&3)) {
@@ -107,7 +131,11 @@ static inline unsigned int _mcpy(unsigned char *a,unsigned char *b,unsigned int 
 }
 
 // some magic to avoid a lot of casts
-static inline unsigned int mcpy(void *a,void *b,unsigned int len)
+static
+#ifndef _WIN32
+inline
+#endif
+unsigned int mcpy(void *a,void *b,unsigned int len)
 {
 	return _mcpy(a,b,len);
 }
@@ -1242,19 +1270,20 @@ void plr_logout(int cn,int nr,int reason)
                         do_area_log(cn,0,ch[cn].x,ch[cn].y,2,"%s left the game without saying goodbye and was punished by the gods.\n",ch[cn].name);
                 }
 
-                if (map[ch[cn].x+ch[cn].y*MAPX].ch==cn) {
+                if (ch[cn].x>=0 && ch[cn].x<MAPX && ch[cn].y>=0 && ch[cn].y<MAPY && map[ch[cn].x+ch[cn].y*MAPX].ch==cn) {
                         map[ch[cn].x+ch[cn].y*MAPX].ch=0;
                         if (ch[cn].light) do_add_light(ch[cn].x,ch[cn].y,-ch[cn].light);
                 }
-                if (map[ch[cn].tox+ch[cn].toy*MAPX].to_ch==cn) map[ch[cn].tox+ch[cn].toy*MAPX].to_ch=0;
+
+                if (ch[cn].tox>=0 && ch[cn].tox<MAPX && ch[cn].toy>=0 && ch[cn].toy<MAPY && (map[ch[cn].tox+ch[cn].toy*MAPX].to_ch==cn)) map[ch[cn].tox+ch[cn].toy*MAPX].to_ch=0;
                 remove_enemy(cn);
 
                 if (reason==LO_IDLE || reason==LO_SHUTDOWN || reason==0) { // give lag scroll to player
-                        if (abs(ch[cn].x-ch[cn].temple_x)+abs(ch[cn].y-ch[cn].temple_y)>10 && !(map[ch[cn].x+ch[cn].y*MAPX].flags&MF_NOLAG)) {
-                                in=god_create_item(IT_LAGSCROLL);
-                                it[in].data[0]=ch[cn].x;
-                                it[in].data[1]=ch[cn].y;
-				it[in].data[2]=globs->ticker;
+                        if (ch[cn].x>=0 && ch[cn].x<MAPX && ch[cn].y>=0 && ch[cn].y<MAPY && abs(ch[cn].x-ch[cn].temple_x)+abs(ch[cn].y-ch[cn].temple_y)>10 && !(map[ch[cn].x+ch[cn].y*MAPX].flags&MF_NOLAG)) {
+								in=god_create_item(IT_LAGSCROLL);
+								it[in].data[0]=ch[cn].x;
+								it[in].data[1]=ch[cn].y;
+								it[in].data[2]=globs->ticker;
                                 if (in) god_give_char(in,cn);
                         }
                 }
@@ -1303,7 +1332,11 @@ void plr_logout(int cn,int nr,int reason)
 void plr_state(int nr)
 {
         if (globs->ticker-player[nr].lasttick>TICKS*15 && player[nr].state==ST_EXIT) {
+#ifndef _WIN32
                 close(player[nr].sock);
+#else
+				closesocket(player[nr].sock);
+#endif
                 plog(nr,"Connection closed (ST_EXIT)");
                 player[nr].sock=0;
 		deflateEnd(&player[nr].zs);
@@ -1330,7 +1363,11 @@ void plr_state(int nr)
         }
 }
 
-void inline plr_change_stat(int nr,unsigned char *a,unsigned char *b,unsigned char code,unsigned char n)
+void
+#ifndef _WIN32
+	inline
+#endif
+plr_change_stat(int nr,unsigned char *a,unsigned char *b,unsigned char code,unsigned char n)
 {
         unsigned char buf[16];
 
@@ -1352,7 +1389,11 @@ void inline plr_change_stat(int nr,unsigned char *a,unsigned char *b,unsigned ch
         }
 }
 
-void inline plr_change_power(int nr,unsigned short *a,unsigned short *b,unsigned char code)
+void
+#ifndef _WIN32
+inline
+#endif
+plr_change_power(int nr,unsigned short *a,unsigned short *b,unsigned char code)
 {
         unsigned char buf[16];
 
@@ -1370,7 +1411,10 @@ void inline plr_change_power(int nr,unsigned short *a,unsigned short *b,unsigned
         }
 }
 
-inline int ch_base_status(int n)
+#ifndef _WIN32
+inline
+#endif
+int ch_base_status(int n)
 {
         if (n<4) return n;
 
@@ -1419,7 +1463,11 @@ inline int ch_base_status(int n)
         return n;
 }
 
-static inline int it_base_status(int n)
+static 
+#ifndef _WIN32
+inline
+#endif
+int it_base_status(int n)
 {
         if (n==0) return 0;
         if (n==1) return 1;
@@ -1934,7 +1982,10 @@ void char_play_sound(int cn,int sound,int vol,int pan)
         xsend(nr,buf,13);
 }
 
-inline int do_char_calc_light(int cn,int light)
+#ifndef _WIN32
+inline
+#endif
+int do_char_calc_light(int cn,int light)
 {
         int val;
 
@@ -1949,7 +2000,10 @@ inline int do_char_calc_light(int cn,int light)
         return val;
 }
 
-inline int check_dlight(int x,int y)
+#ifndef _WIN32
+inline
+#endif
+int check_dlight(int x,int y)
 {
         int m;
 
@@ -1960,14 +2014,21 @@ inline int check_dlight(int x,int y)
         return (globs->dlight*map[m].dlight)/256;
 }
 
-inline int check_dlightm(int m)
+#ifndef _WIN32
+inline
+#endif
+int check_dlightm(int m)
 {
         if (!(map[m].flags&MF_INDOORS)) return globs->dlight;
 
         return (globs->dlight*map[m].dlight)/256;
 }
 
-static void inline empty_field(struct cmap *smap,int n)
+static void 
+#ifndef _WIN32
+inline
+#endif
+empty_field(struct cmap *smap,int n)
 {
 	smap[n].ba_sprite=SPR_EMPTY;
         smap[n].flags=0;
@@ -2443,7 +2504,11 @@ void plr_clear_map(void)
 	int n;
 
 	for (n=1; n<MAXPLAYER; n++) {
+#ifndef _WIN32
 		bzero(player[n].smap,sizeof(player[n].smap));
+#else
+		memset(player[n].smap,0,sizeof(player[n].smap));
+#endif
 		player[n].vx=0;	// force do_all in plr_getmap
 	}
 }
@@ -2586,7 +2651,10 @@ void check_expire(int cn)
 	}
 }
 
-inline int group_active(int cn)
+#ifndef _WIN32
+inline
+#endif
+int group_active(int cn)
 {
         if ((ch[cn].flags&(CF_PLAYER|CF_USURP|CF_NOSLEEP)) && ch[cn].used==USE_ACTIVE) return 1;
 

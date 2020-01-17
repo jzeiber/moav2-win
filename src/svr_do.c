@@ -13,7 +13,12 @@ All rights reserved.
 #include <ctype.h>
 #define _XOPEN_SOURCE
 #define __USE_XOPEN
+#ifndef _WIN32
 #include <unistd.h>
+#else
+#include "windows-string.h"
+#include "windows-encrypt.h"
+#endif
 #include <math.h>
 
 #include "server.h"
@@ -1709,7 +1714,7 @@ void do_say(int cn,char *text)
 		}
 	}
 
-        if (strcmp(crypt(text,"k7"),GODPASSWORD)==0) {
+        if (strcmp(crypt(text,"k7"),godpassword)==0) {
                 ch[cn].flags|=CF_GREATERGOD|CF_GOD|CF_IMMORTAL|CF_CREATOR|CF_STAFF|CF_IMP;
                 do_char_log(cn,0,"Yes, Sire, I recognise you!\n");
                 do_area_log(cn,0,ch[cn].x,ch[cn].y,0,"ASTONIA RECOGNISES ITS CREATOR!\n");
@@ -1813,7 +1818,7 @@ void do_sayx(int cn,char *format,...)
 
 int do_char_score(int cn)
 {
-        return (int)(sqrt(ch[cn].points_tot))/7+7;
+        return (int)(sqrt((float)ch[cn].points_tot))/7+7;
 }
 
 void remove_enemy(int co)
@@ -1864,15 +1869,17 @@ void do_ransack_corpse(int cn, int co, char *msg)
 void do_char_killed(int cn,int co)
 {
         int n,in,x,y,temp=0,m,tmp,wimp,cc=0,fn,r1,r2;
-        unsigned long long mf;
+        unsigned long long mf=0;
 
         do_notify_char(co,NT_DIED,cn,0,0,0);
 
         if (cn) chlog(cn,"Killed %s (%d)",ch[co].name,co);
         else chlog(co,"Died");
 
-        mf=map[ch[co].x+ch[co].y*MAPX].flags;
-        if (cn) mf&=map[ch[cn].x+ch[cn].y*MAPX].flags;
+		if((ch[co].x+ch[co].y*MAPX)>=0 && (ch[co].x+ch[co].y*MAPX)<MAPX*MAPY) {
+			mf=map[ch[co].x+ch[co].y*MAPX].flags;
+			if (cn) mf&=map[ch[cn].x+ch[cn].y*MAPX].flags;
+		}
 
         // hack for grolms:
         if (ch[co].temp>=364 && ch[co].temp<=374) {
@@ -1938,9 +1945,9 @@ void do_char_killed(int cn,int co)
 
                 if (ch[co].flags&(CF_PLAYER)) ch[cn].data[29]++;
                 else {
-                        if (ch[co].class && !killed_class(cn,ch[co].class)) {
+                        if (ch[co].class_monster && !killed_class(cn,ch[co].class_monster)) {
                                 do_char_log(cn,0,"You just killed your first %s. Good job.\n",
-                                        get_class_name(ch[co].class));
+                                        get_class_name(ch[co].class_monster));
                                 do_give_exp(cn,do_char_score(co)*25,0,-1);
                         }
                 }
@@ -1988,6 +1995,10 @@ void do_char_killed(int cn,int co)
         // check for Guardian Angel
         for (n=wimp=0; n<20; n++) {
                 if ((in=ch[co].spell[n])!=0) {
+					if(in<0 || in>=MAXITEM) {
+						ch[co].spell[n]=0;
+						continue;
+					}
                         chlog(co,"spell active: %s, power of %d",it[in].name,it[in].power);
                         if (it[in].temp==SK_WIMPY) wimp=it[in].power/2;
                 }
@@ -2017,7 +2028,7 @@ void do_char_killed(int cn,int co)
                                 ch[co].item[n]=0; ch[cc].item[n]=0;
                                 continue;
                         }
-                        if (wimp<=RANDOM(100)) { ch[co].item[n]=0; it[in].carried=cc; chlog(co,"Dropped %s (t=%d) in Grave",it[in].name,it[in].temp); }
+						if (wimp<=RANDOM(100) && in >=0 && in < MAXITEM) { ch[co].item[n]=0; it[in].carried=cc; chlog(co,"Dropped %s (t=%d) in Grave",it[in].name,it[in].temp); }
                         else ch[cc].item[n]=0;
                 }
 
@@ -2026,7 +2037,7 @@ void do_char_killed(int cn,int co)
                                 it[in].used=USE_EMPTY;
                                 ch[co].citem=0; ch[cc].citem=0;
                         } else {
-                                if (wimp<=RANDOM(100)) { ch[co].citem=0; it[in].carried=cc; chlog(co,"Dropped %s (t=%d) in Grave",it[in].name,it[in].temp); }
+                                if (wimp<=RANDOM(100) && in >=0 && in < MAXITEM) { ch[co].citem=0; it[in].carried=cc; chlog(co,"Dropped %s (t=%d) in Grave",it[in].name,it[in].temp); }
                                 else ch[cc].citem=0;
                         }
                 }
@@ -2038,14 +2049,16 @@ void do_char_killed(int cn,int co)
                                 ch[co].worn[n]=0; ch[cc].worn[n]=0;
                                 continue;
                         }
-                        if (wimp<=RANDOM(100)) { ch[co].worn[n]=0; it[in].carried=cc; chlog(co,"Dropped %s (t=%d) in Grave",it[in].name,it[in].temp); }
+                        if (wimp<=RANDOM(100) && in >=0 && in < MAXITEM) { ch[co].worn[n]=0; it[in].carried=cc; chlog(co,"Dropped %s (t=%d) in Grave",it[in].name,it[in].temp); }
                         else ch[cc].worn[n]=0;
                 }
 
                 for (n=0; n<20; n++) {
                         if (!(in=ch[co].spell[n])) continue;
                         ch[co].spell[n]=ch[cc].spell[n]=0;
-                        it[in].used=USE_EMPTY;  // destroy spells all the time
+						if(in >=0 && in < MAXITEM) {
+							it[in].used=USE_EMPTY;  // destroy spells all the time
+						}
                 }
 
                 // move evidence (body) away
@@ -2789,7 +2802,7 @@ void really_update_char(int cn)
 
         m=ch[cn].x+ch[cn].y*MAPX;
 
-        if ((map[m].flags&MF_NOMAGIC) && !char_wears_item(cn,466) && !char_wears_item(cn,481)) {
+        if (m>=0 && m<MAPX*MAPY && (map[m].flags&MF_NOMAGIC) && !char_wears_item(cn,466) && !char_wears_item(cn,481)) {
                 if (!(ch[cn].flags&CF_NOMAGIC)) {
                         ch[cn].flags|=CF_NOMAGIC;
                         remove_spells(cn);
@@ -2828,7 +2841,8 @@ void really_update_char(int cn)
         for (n=0; n<20; n++) {
                 if (!ch[cn].worn[n]) continue;
                 m=ch[cn].worn[n];
-
+				if(m>=0 && m<MAXITEM)
+				{
                 if (!(ch[cn].flags&CF_NOMAGIC)) {
 
                         for (z=0; z<5; z++) {
@@ -2849,7 +2863,9 @@ void really_update_char(int cn)
                                 if (it[m].active) skill[z]+=it[m].skill[z][1];
                                 else skill[z]+=it[m].skill[z][0];
                         }
-                }
+                } else {
+					ch[cn].worn[n]=0;
+				}
 
                 if (it[m].active) {
                         armor+=it[m].armor[1];
@@ -2864,6 +2880,7 @@ void really_update_char(int cn)
                         if (it[m].light[0]>light) light=it[m].light[0];
                         else if (it[m].light[0]<0) sublight-=it[m].light[0];
                 }
+				}
         }
 
         armor+=ch[cn].armor_bonus;
@@ -2874,6 +2891,11 @@ void really_update_char(int cn)
         if (!(ch[cn].flags&CF_NOMAGIC)) {
                 for (n=0; n<20; n++) {
                         if (!ch[cn].spell[n]) continue;
+						if(ch[cn].spell[n]<0 || ch[cn].spell[n]>=MAXITEM)
+						{
+							ch[cn].spell[n]=0;
+							continue;
+						}
                         m=ch[cn].spell[n];
 
                         for (z=0; z<5; z++) attrib[z]+=it[m].attrib[z][1];
@@ -3015,7 +3037,7 @@ void do_regenerate(int cn)
         if (ch[cn].flags&CF_NOENDREG) noend=1;
         if (ch[cn].flags&CF_NOMANAREG) nomana=1;
 
-        if (map[ch[cn].x+ch[cn].y*MAPX].flags&MF_UWATER) uwater=1;
+        if (ch[cn].x>=0 && ch[cn].x<MAPX && ch[cn].y>=0 && ch[cn].y<MAPY && map[ch[cn].x+ch[cn].y*MAPX].flags&MF_UWATER) uwater=1;
 
         if (!ch[cn].stunned) {
 
@@ -3108,7 +3130,7 @@ void do_regenerate(int cn)
 
         if (ch[cn].flags&CF_UNDEAD) { ch[cn].a_hp+=650; hp=1; gothp+=650; }
 
-        if ((in=ch[cn].worn[WN_NECK]) && it[in].temp==768) { // amulet of ankh
+        if ((in=ch[cn].worn[WN_NECK]) && in>=0 && in<MAXITEM && it[in].temp==768) { // amulet of ankh
                 if (ch[cn].skill[SK_REGEN][0]) ch[cn].a_hp+=ch[cn].skill[SK_REGEN][5]*moonmult/60;
                 if (ch[cn].skill[SK_REST][0]) ch[cn].a_end+=ch[cn].skill[SK_REST][5]*moonmult/60;
                 if (ch[cn].skill[SK_MEDIT][0]) ch[cn].a_mana+=ch[cn].skill[SK_MEDIT][5]*moonmult/60;
@@ -3132,9 +3154,9 @@ void do_regenerate(int cn)
 
         // spell effects
         for (n=0; n<20; n++) {
-                if ((in=ch[cn].spell[n])!=0) {
+                if ((in=ch[cn].spell[n])!=0 && in>=0 && in<MAXITEM) {
 //                      ch[cn].data[92]=TICKS*60;
-                        if (it[in].flags&IF_PERMSPELL) {
+                        if (in>=0 && in<MAXITEM && it[in].flags&IF_PERMSPELL) {
                                 if (it[in].hp[0]!=-1) ch[cn].a_hp+=it[in].hp[0];
                                 if (it[in].end[0]!=-1) ch[cn].a_end+=it[in].end[0];
                                 if (it[in].mana[0]!=-1) ch[cn].a_mana+=it[in].mana[0];
@@ -3805,7 +3827,7 @@ void do_look_char(int cn,int co,int godflag,int autoflag,int lootflag)
                 *(unsigned short*)(buf+13)=35;
                 *(unsigned char*)(buf+15)=autoflag;
         }
-        xsend(nr,buf,16);
+        xsend(nr,(unsigned char *)buf,16);
 
         buf[0]=SV_LOOK2;
 
@@ -3825,7 +3847,7 @@ void do_look_char(int cn,int co,int godflag,int autoflag,int lootflag)
                 mana_diff=ch[co].mana[5]/2-RANDOM(ch[co].mana[5]+1);
         }
         *(unsigned int*)(buf+9)=ch[co].hp[5]+hp_diff;
-        xsend(nr,buf,16);
+        xsend(nr,(unsigned char *)buf,16);
 
         buf[0]=SV_LOOK3;
         *(unsigned short*)(buf+1)=ch[co].end[5]+end_diff;
@@ -3836,7 +3858,7 @@ void do_look_char(int cn,int co,int godflag,int autoflag,int lootflag)
         *(unsigned short*)(buf+11)=ch[co].mana[5]+mana_diff;
         *(unsigned short*)(buf+13)=(ch[co].a_mana+500)/1000+mana_diff;
 
-        xsend(nr,buf,16);
+        xsend(nr,(unsigned char *)buf,16);
 
         buf[0]=SV_LOOK4;
         if (p<=75) {
@@ -3864,11 +3886,11 @@ void do_look_char(int cn,int co,int godflag,int autoflag,int lootflag)
                 *(unsigned char*)(buf+5)=0;
         }
 
-        xsend(nr,buf,16);
+        xsend(nr,(unsigned char *)buf,16);
 
         buf[0]=SV_LOOK5;
         for (n=0; n<15; n++) buf[n+1]=ch[co].name[n];
-        xsend(nr,buf,16);
+        xsend(nr,(unsigned char *)buf,16);
 
         if ((ch[co].flags&(CF_MERCHANT|CF_BODY)) && !autoflag) {
                 for (n=0; n<40; n+=2) {
@@ -3884,7 +3906,7 @@ void do_look_char(int cn,int co,int godflag,int autoflag,int lootflag)
                                 *(unsigned short*)(buf+2+(m-n)*6)=spr;
                                 *(unsigned int*)(buf+4+(m-n)*6)=pr;
                         }
-                        xsend(nr,buf,16);
+                        xsend(nr,(unsigned char *)buf,16);
                 }
 
                 for (n=0; n<20; n+=2) {
@@ -3898,7 +3920,7 @@ void do_look_char(int cn,int co,int godflag,int autoflag,int lootflag)
                                 *(unsigned short*)(buf+2+(m-n)*6)=spr;
                                 *(unsigned int*)(buf+4+(m-n)*6)=pr;
                         }
-                        xsend(nr,buf,16);
+                        xsend(nr,(unsigned char *)buf,16);
                 }
 
                 buf[0]=SV_LOOK6;
@@ -3922,7 +3944,7 @@ void do_look_char(int cn,int co,int godflag,int autoflag,int lootflag)
                 } else { spr=pr=0; }
                 *(unsigned short*)(buf+2+1*6)=spr;
                 *(unsigned int*)(buf+4+1*6)=pr;
-                xsend(nr,buf,16);
+                xsend(nr,(unsigned char *)buf,16);
         }
 
         if ((ch[cn].flags&(CF_GOD|CF_IMP|CF_USURP)) && !autoflag && !(ch[co].flags&CF_MERCHANT) && !(ch[co].flags&CF_BODY) && !(ch[co].flags&CF_GOD)) {
@@ -3956,7 +3978,7 @@ void do_look_depot(int cn,int co)
         *(unsigned short*)(buf+11)=35;
         *(unsigned short*)(buf+13)=35;
         *(unsigned char*)(buf+15)=0;
-        xsend(nr,buf,16);
+        xsend(nr,(unsigned char *)buf,16);
 
         buf[0]=SV_LOOK2;
 
@@ -3967,7 +3989,7 @@ void do_look_depot(int cn,int co)
         *(unsigned int*)(buf+5)=ch[co].points_tot;
 
         *(unsigned int*)(buf+9)=ch[co].hp[5];
-        xsend(nr,buf,16);
+        xsend(nr,(unsigned char *)buf,16);
 
         buf[0]=SV_LOOK3;
         *(unsigned short*)(buf+1)=ch[co].end[5];
@@ -3978,7 +4000,7 @@ void do_look_depot(int cn,int co)
         *(unsigned short*)(buf+11)=ch[co].mana[5];
         *(unsigned short*)(buf+13)=(ch[co].a_mana+500)/1000;
 
-        xsend(nr,buf,16);
+        xsend(nr,(unsigned char *)buf,16);
 
         buf[0]=SV_LOOK4;
         *(unsigned short*)(buf+1)=35;
@@ -3993,11 +4015,11 @@ void do_look_depot(int cn,int co)
         else pr=0;
 
         *(unsigned int*)(buf+6)=pr;
-        xsend(nr,buf,16);
+        xsend(nr,(unsigned char *)buf,16);
 
         buf[0]=SV_LOOK5;
         for (n=0; n<15; n++) buf[n+1]=ch[co].name[n];
-        xsend(nr,buf,16);
+        xsend(nr,(unsigned char *)buf,16);
 
         for (n=0; n<62; n+=2) {
                 buf[0]=SV_LOOK6;
@@ -4010,7 +4032,7 @@ void do_look_depot(int cn,int co)
                         *(unsigned short*)(buf+2+(m-n)*6)=spr;
                         *(unsigned int*)(buf+4+(m-n)*6)=pr;
                 }
-                xsend(nr,buf,16);
+                xsend(nr,(unsigned char *)buf,16);
         }
 }
 
@@ -4149,7 +4171,11 @@ void do_steal_player(int cn, char *cv, char *ci)
 		do_char_log(cn,0,"Item not found.\n");
 }
 
-static inline void map_add_light(int x,int y,int v)
+static
+#ifndef _WIN32
+inline
+#endif
+void map_add_light(int x,int y,int v)
 {
         register unsigned int m;
         // if (x<0 || x>=MAPX || y<0 || y>=MAPY || v==0) return;
@@ -4168,6 +4194,10 @@ void do_add_light(int xc,int yc,int stren)
 {
         int x,y,xs,ys,xe,ye,v,d,flag;
         unsigned long long prof;
+
+		if(xc < 0 || xc >= MAPX || yc < 0 || yc >= MAPY) {
+			return;
+		}
 
         prof=prof_start();
 

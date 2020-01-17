@@ -7,10 +7,30 @@ All rights reserved.
 **************************************************************************/
 
 // -- server --
-void xlog(char *format,...) __attribute__ ((format(printf,1,2)));
-void seclog(char *format,...) __attribute__ ((format(printf,1,2)));
-void chlog(int cn,char *format,...) __attribute__ ((format(printf,2,3)));
-void plog(int nr,char *format,...) __attribute__ ((format(printf,2,3)));
+void xlog(char *format,...)
+#ifdef __GNUC__
+	__attribute__ ((format(printf,1,2)))
+#endif
+;
+
+void seclog(char *format,...)
+#ifdef __GNUC__
+	__attribute__ ((format(printf,1,2)))
+#endif
+;
+
+void chlog(int cn,char *format,...)
+#ifdef __GNUC__
+	__attribute__ ((format(printf,2,3)))
+#endif
+;
+
+void plog(int nr,char *format,...)
+#ifdef __GNUC__
+	__attribute__ ((format(printf,2,3)))
+#endif
+;
+
 void prof_tick(void);
 unsigned long long prof_start(void);
 void prof_stop(int task,unsigned long long cycle);
@@ -203,10 +223,20 @@ int do_swap_item(int cn,int n);
 void do_look_char(int cn,int co,int godflag,int autoflag,int lootflag);
 void do_look_item(int cn,int in);
 int do_char_calc_light(int cn,int light);
-void do_char_log(int cn,int font,char *format,...) __attribute__ ((format(printf,3,4)));
+void do_char_log(int cn,int font,char *format,...)
+#ifdef __GNUC__
+	__attribute__ ((format(printf,3,4)))
+#endif
+;
+
 void do_say(int cn,char *text);
 int do_char_score(int cn);
-void do_area_log(int cn,int co,int x,int y,int font,char *format,...) __attribute__ ((format(printf,6,7)));
+void do_area_log(int cn,int co,int x,int y,int font,char *format,...)
+#ifdef __GNUC__
+	__attribute__ ((format(printf,6,7)))
+#endif
+;
+
 int do_char_can_flee(int cn);
 void remove_enemy(int cn);
 void do_char_killed(int cn,int co);
@@ -219,7 +249,12 @@ void do_shop_char(int cn,int co,int nr);
 void do_give_exp(int cn,int p,int gflag,int rank);
 int get_fight_skill(int cn);
 int do_hurt(int cn,int co,int dam,int type);
-void do_staff_log(int font,char *format,...) __attribute__ ((format(printf,2,3)));
+void do_staff_log(int font,char *format,...)
+#ifdef __GNUC__
+	__attribute__ ((format(printf,2,3)))
+#endif
+;
+
 int do_remove_unique(int cn);
 void do_unique_info(int cn);
 void do_look_depot(int cn,int co);
@@ -304,6 +339,7 @@ int cap(int cn,int nr);
 int use_soulstone(int cn,int in);
 int load_mod(void);
 void set_cap(int cn,int nr);
+void init_godpassword(void);
 
 //-- skill_driver --
 int spell_immunity(int power,int immun);

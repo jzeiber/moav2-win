@@ -19,8 +19,10 @@ void plr_map_remove(int cn)     // remove character from map
 
         m=ch[cn].x+ch[cn].y*MAPX;
 
-        map[m].ch=0;
-        map[ch[cn].tox+ch[cn].toy*MAPX].to_ch=0;
+		if(m >=0 && m < MAPX*MAPY) {
+			map[m].ch=0;
+			map[ch[cn].tox+ch[cn].toy*MAPX].to_ch=0;
+		}
 
         if (ch[cn].light) {
                 do_add_light(ch[cn].x,ch[cn].y,-ch[cn].light);
@@ -38,7 +40,7 @@ int char_wears_item(int cn,int tmp)
         int in,n;
 
         for (n=0; n<20; n++)
-                if ((in=ch[cn].worn[n])!=0 && it[in].temp==tmp) return 1;
+                if ((in=ch[cn].worn[n])!=0 && in>=0 && in<MAXITEM && it[in].temp==tmp) return 1;
 
         return 0;
 }
@@ -1090,7 +1092,11 @@ unsigned char speedtab[20][20]=
         {0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0}       //1
 };
 
-static inline int speedo(int n)
+static
+#ifndef _WIN32
+inline
+#endif
+int speedo(int n)
 {
         return speedtab[ch[n].speed][ctick];
 }

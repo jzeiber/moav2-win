@@ -8,16 +8,25 @@ All rights reserved.
 
 #include <malloc.h>
 #include <string.h>
+#ifndef _WIN32
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <unistd.h>
+#else
+#include <time.h>
+#include <io.h>
+#endif
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
 #include <fcntl.h>
 #include <stdarg.h>
+#ifndef _WIN32
 #include <sys/socket.h>
 #include <netinet/in.h>
+#else
+#include <ws2tcpip.h>
+#endif
 
 #include "server.h"
 
@@ -29,12 +38,20 @@ static char _visi[40*40];
 static int ox=0,oy=0;
 static char ismonster=0;
 
-static inline void add_vis(int x,int y,int v)
+static 
+#ifndef _WIN32
+inline
+#endif
+void add_vis(int x,int y,int v)
 {
         if (!visi[(x-ox+20)+(y-oy+20)*40]) visi[(x-ox+20)+(y-oy+20)*40]=v;
 }
 
-static inline int check_map_see(int x,int y)
+static
+#ifndef _WIN32
+inline
+#endif
+int check_map_see(int x,int y)
 {
         int m;
 
@@ -49,7 +66,11 @@ static inline int check_map_see(int x,int y)
         return 1;
 }
 
-static inline int check_map_go(int x,int y)
+static
+#ifndef _WIN32
+inline
+#endif
+int check_map_go(int x,int y)
 {
         int m;
 
@@ -64,7 +85,11 @@ static inline int check_map_go(int x,int y)
         return 1;
 }
 
-static inline int close_vis_see(int x,int y,int v)
+static
+#ifndef _WIN32
+inline
+#endif
+int close_vis_see(int x,int y,int v)
 {
         if (!check_map_see(x,y)) return 0;
 
@@ -83,7 +108,11 @@ static inline int close_vis_see(int x,int y,int v)
         return 0;
 }
 
-static inline int close_vis_go(int x,int y,int v)
+static
+#ifndef _WIN32
+inline
+#endif
+int close_vis_go(int x,int y,int v)
 {
         if (!check_map_go(x,y)) return 0;
 
@@ -102,7 +131,11 @@ static inline int close_vis_go(int x,int y,int v)
         return 0;
 }
 
-static inline int check_vis(int x,int y)
+static
+#ifndef _WIN32
+inline
+#endif
+int check_vis(int x,int y)
 {
         int best=99;
 
@@ -126,7 +159,11 @@ static void can_map_see(int _fx,int _fy,int maxdist)
 {
         int xc,yc,x,y,dist;
 
+#ifndef _WIN32
         bzero(visi,sizeof(char)*40*40);
+#else
+		memset(visi,0,sizeof(char)*40*40);
+#endif
 
         ox=_fx; oy=_fy;
         xc=_fx; yc=_fy;
@@ -149,7 +186,11 @@ static void can_map_go(int _fx,int _fy,int maxdist)
 {
         int xc,yc,x,y,dist;
 
+#ifndef _WIN32
         bzero(visi,sizeof(char)*40*40);
+#else
+		memset(visi,0,sizeof(char)*40*40);
+#endif
 
         ox=_fx; oy=_fy;
         xc=_fx; yc=_fy;
@@ -818,6 +859,35 @@ void use_labtransfer2(int cn,int co)
 }
 
 //----------------------
+
+void init_godpassword(void)
+{
+	FILE *fp;
+	char buf[80];
+
+	if(godpassword) {
+		free(godpassword);
+		godpassword=NULL;
+	}
+
+	fp=fopen("godpassword.txt","r");
+	if(fp) {
+		if(fgets(buf,80,fp)!=NULL) {
+			godpassword=(char *)malloc(strlen(buf)+1);
+			if(godpassword) {
+				strncpy(godpassword,buf,strlen(buf));
+				godpassword[strlen(buf)]=0;
+			}
+		}
+		fclose(fp);
+	} else {
+		godpassword=(char *)malloc(strlen(DEFAULT_GODPASSWORD)+1);
+		if(godpassword) {
+			strncpy(godpassword,DEFAULT_GODPASSWORD,strlen(DEFAULT_GODPASSWORD));
+			godpassword[strlen(DEFAULT_GODPASSWORD)]=0;
+		}
+	}
+}
 
 static char **badword=NULL;
 static int cursize=0,maxsize=0;

@@ -25,6 +25,7 @@ All rights reserved.
 #define GF_SPEEDY		(1<<4)
 #define GF_DIRTY		(1<<5)
 
+#pragma pack(push,1)
 struct global
 {
         int mdtime;
@@ -87,6 +88,7 @@ struct global
 
 	int cap;
 };
+#pragma pack(pop)
 
 
 /*******/
@@ -131,6 +133,7 @@ struct global
 /* CS, 991113: SIZEs in one header */
 #define MAPSIZE         (sizeof(struct map)*MAPX*MAPY)
 
+#pragma pack(push,1)
 struct map_old
 {
         unsigned short sprite;          // background image
@@ -145,8 +148,10 @@ struct map_old
 
         unsigned long long flags;       // s.a.
 
-} __attribute__ ((packed));
+};
+#pragma pack(pop)
 
+#pragma pack(push,1)
 struct map
 {
         unsigned short sprite;          // background image
@@ -161,7 +166,8 @@ struct map
 
         unsigned long long flags;       // s.a.
 
-} __attribute__ ((packed));
+};
+#pragma pack(pop)
 
 /* CS, 991113: Support for new pathfinder */
 extern unsigned int mapmark[MAPX][MAPY];
@@ -305,6 +311,7 @@ extern unsigned int mapmarker;
 #define CHARSIZE (sizeof(struct character)*MAXCHARS)
 #define TCHARSIZE (sizeof(struct character)*MAXTCHARS)
 
+#pragma pack(push,1)
 struct character
 {
         unsigned char used;             // 1
@@ -455,7 +462,7 @@ struct character
 
         int unreach,unreachx,unreachy;
 
-        int class;                      // monster class
+        int class_monster;                      // monster class
 
         int future3[12];
 
@@ -465,7 +472,8 @@ struct character
         int data[100];
         char text[10][160];
 
-} __attribute__ ((packed));
+};
+#pragma pack(pop)
 
 /*********/
 /* Items */
@@ -518,6 +526,7 @@ struct character
 #define ITEMSIZE (sizeof(struct item)*MAXITEM)
 #define TITEMSIZE (sizeof(struct item)*MAXTITEM)
 
+#pragma pack(push,1)
 struct item
 {
         unsigned char used;             // 1
@@ -589,7 +598,8 @@ struct item
         unsigned char driver;           // 596, special routines for LOOKSPECIAL and USESPECIAL
         unsigned int data[10];          // 634, driver data
 
-} __attribute__ ((packed));
+};
+#pragma pack(pop)
 
 /***********/
 /* Effects */
@@ -603,6 +613,7 @@ struct item
 /* CS, 991113: SIZEs in one header */
 #define EFFECTSIZE (sizeof(struct effect)*MAXEFFECT)
 
+#pragma pack(push,1)
 struct effect
 {
         unsigned char used;
@@ -613,7 +624,8 @@ struct effect
         unsigned int duration;          // time effect will stay
 
         unsigned int data[10];          // some data
-} __attribute__ ((packed));
+};
+#pragma pack(pop)
 
 struct s_skilltab
 {

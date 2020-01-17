@@ -12,7 +12,7 @@ All rights reserved.
 
 int can_drop(int m)
 {
-	if (map[m].ch || map[m].to_ch || map[m].it || (map[m].flags&MF_MOVEBLOCK) || (map[m].flags&MF_DEATHTRAP) || map[m].fsprite) return 0;
+	if (m<0 || m > MAPX*MAPY || map[m].ch || map[m].to_ch || map[m].it || (map[m].flags&MF_MOVEBLOCK) || (map[m].flags&MF_DEATHTRAP) || map[m].fsprite) return 0;
 	return 1;
 }
 
@@ -39,7 +39,9 @@ void effect_tick(void)
 			fx[n].duration--;
 			if (fx[n].duration==0) {
 				fx[n].used=USE_EMPTY;
-				map[fx[n].data[0]+fx[n].data[1]*MAPX].flags&=~(MF_GFX_INJURED|MF_GFX_INJURED1|MF_GFX_INJURED2);
+				if(fx[n].data[0]+fx[n].data[1]*MAPX >=0 && fx[n].data[0]+fx[n].data[1]*MAPX < MAPX*MAPY) {
+					map[fx[n].data[0]+fx[n].data[1]*MAPX].flags&=~(MF_GFX_INJURED|MF_GFX_INJURED1|MF_GFX_INJURED2);
+				}
 			}
 		}
 
@@ -47,7 +49,9 @@ void effect_tick(void)
 			if (fx[n].duration) fx[n].duration--;
 			if (fx[n].duration==0 && plr_check_target(fx[n].data[0]+fx[n].data[1]*MAPX)) {
 				m=fx[n].data[0]+fx[n].data[1]*MAPX;
-				map[m].flags|=MF_MOVEBLOCK;
+				if(m>=0 && m<MAPX*MAPY) {
+					map[m].flags|=MF_MOVEBLOCK;
+				}
 				fx[n].type=8;
 			}
 		}
@@ -59,11 +63,15 @@ void effect_tick(void)
 				fx[n].used=0;
 
 				m=fx[n].data[0]+fx[n].data[1]*MAPX;
-				map[m].flags&=~MF_GFX_DEATH;
+				if(m >=0 && m < MAPX*MAPY) {
+					map[m].flags&=~MF_GFX_DEATH;
+				}
 			} else {
 				m=fx[n].data[0]+fx[n].data[1]*MAPX;
-				map[m].flags&=~MF_GFX_DEATH;
-				map[m].flags|=((unsigned long long)fx[n].duration)<<40;
+				if(m >=0 && m < MAPX*MAPY) {
+					map[m].flags&=~MF_GFX_DEATH;
+					map[m].flags|=((unsigned long long)fx[n].duration)<<40;
+				}
 
 				if (fx[n].duration==9) {
 					plr_map_remove(fx[n].data[2]);
@@ -157,8 +165,10 @@ void effect_tick(void)
 				co=fx[n].data[2];
 				
 				m=fx[n].data[0]+fx[n].data[1]*MAPX;
-				map[m].flags&=~MF_GFX_TOMB;
-				map[m].flags&=~MF_MOVEBLOCK;								
+				if(m >=0 && m < MAPX*MAPY) {
+					map[m].flags&=~MF_GFX_TOMB;
+					map[m].flags&=~MF_MOVEBLOCK;
+				}
 
 				in=god_create_item(170);				
 				it[in].data[0]=co;
@@ -180,8 +190,10 @@ void effect_tick(void)
 				chlog(co,"grave done");
 			} else {
 				m=fx[n].data[0]+fx[n].data[1]*MAPX;
-				map[m].flags&=~MF_GFX_TOMB;
-				map[m].flags|=((unsigned long long)fx[n].duration)<<35;
+				if(m >=0 && m < MAPX*MAPY) {
+					map[m].flags&=~MF_GFX_TOMB;
+					map[m].flags|=((unsigned long long)fx[n].duration)<<35;
+				}
 			}
 		}
 
@@ -191,10 +203,14 @@ void effect_tick(void)
 			if (fx[n].duration==8) {
 
 				fx[n].used=USE_EMPTY;
-				map[m].flags&=~MF_GFX_EMAGIC;
+				if(m >=0 && m < MAPX*MAPY) {
+					map[m].flags&=~MF_GFX_EMAGIC;
+				}
 			} else {
-				map[m].flags&=~MF_GFX_EMAGIC;
-				map[m].flags|=((unsigned long long)fx[n].duration)<<45;
+				if(m >=0 && m < MAPX*MAPY) {
+					map[m].flags&=~MF_GFX_EMAGIC;
+					map[m].flags|=((unsigned long long)fx[n].duration)<<45;
+				}
 			}
 		}
 
@@ -204,10 +220,14 @@ void effect_tick(void)
 			if (fx[n].duration==8) {
 
 				fx[n].used=USE_EMPTY;
-				map[m].flags&=~MF_GFX_GMAGIC;
+				if(m >= 0 && m < MAPX*MAPY) {
+					map[m].flags&=~MF_GFX_GMAGIC;
+				}
 			} else {
-				map[m].flags&=~MF_GFX_GMAGIC;
-				map[m].flags|=((unsigned long long)fx[n].duration)<<48;
+				if(m >=0 && m < MAPX*MAPY) {
+					map[m].flags&=~MF_GFX_GMAGIC;
+					map[m].flags|=((unsigned long long)fx[n].duration)<<48;
+				}
 			}
 		}
 
@@ -216,10 +236,14 @@ void effect_tick(void)
 			m=fx[n].data[0]+fx[n].data[1]*MAPX;
 			if (fx[n].duration==8) {
 				fx[n].used=USE_EMPTY;
-				map[m].flags&=~MF_GFX_CMAGIC;
+				if(m >=0 && m < MAPX*MAPY) {
+					map[m].flags&=~MF_GFX_CMAGIC;
+				}
 			} else {
-				map[m].flags&=~MF_GFX_CMAGIC;
-				map[m].flags|=((unsigned long long)fx[n].duration)<<51;
+				if(m >=0 && m < MAPX*MAPY) {
+					map[m].flags&=~MF_GFX_CMAGIC;
+					map[m].flags|=((unsigned long long)fx[n].duration)<<51;
+				}
 			}
 		}
 
@@ -228,18 +252,26 @@ void effect_tick(void)
 			if (fx[n].duration==19) {
 				fx[n].used=0;
 				m=fx[n].data[0]+fx[n].data[1]*MAPX;
-				map[m].flags&=~MF_GFX_DEATH;
+				if(m >=0 && m < MAPX*MAPY) {
+					map[m].flags&=~MF_GFX_DEATH;
+				}
 			} else {
 				m=fx[n].data[0]+fx[n].data[1]*MAPX;
-				map[m].flags&=~MF_GFX_DEATH;
-				map[m].flags|=((unsigned long long)fx[n].duration)<<40;
+				if(m >=0 && m < MAPX*MAPY) {
+					map[m].flags&=~MF_GFX_DEATH;
+					map[m].flags|=((unsigned long long)fx[n].duration)<<40;
+				}
 				if (fx[n].duration==9) {
 					m=fx[n].data[0]+fx[n].data[1]*MAPX;
-					map[m].flags&=~MF_MOVEBLOCK;
+					if(m >=0 && m < MAPX*MAPY) {
+						map[m].flags&=~MF_MOVEBLOCK;
+					}
 					if (!pop_create_char(fx[n].data[2],1) && (ch_temp[fx[n].data[2]].flags&CF_RESPAWN)) {
 						fx[n].type=2;
 						fx[n].duration=TICKS*60*5;	// try again every 5 minutes
-						map[m].flags&=~MF_GFX_DEATH;
+						if(m >=0 && m < MAPX*MAPY) {
+							map[m].flags&=~MF_GFX_DEATH;
+						}
 					}
 				}
 			}
@@ -266,7 +298,7 @@ void effect_tick(void)
 			if (fx[n].duration) fx[n].duration--;
 			else {
 				m=fx[n].data[0]+fx[n].data[1]*MAPX;
-
+				if(m >=0 && m < MAPX*MAPY) {
 				// check if object isnt allowed to respawn (supporting beams for mine)
 				if (is_beam(map[m].it) ||
 				    is_beam(map[m-1].it) || is_beam(map[m+1].it) ||
@@ -291,6 +323,7 @@ void effect_tick(void)
 				}
 				in2=map[m].it;
 				map[m].it=0;
+				}
 
 				in=god_create_item(fx[n].data[2]);
 
@@ -319,13 +352,17 @@ void effect_tick(void)
 				fx[n].used=0;
 
 				m=fx[n].data[0]+fx[n].data[1]*MAPX;
-				map[m].flags&=~MF_GFX_DEATH;
+				if(m >=0 && m < MAPX*MAPY) {
+					map[m].flags&=~MF_GFX_DEATH;
+				}
 			} else {
 
 				m=fx[n].data[0]+fx[n].data[1]*MAPX;
-				map[m].flags&=~MF_GFX_DEATH;
-				map[m].flags|=((unsigned long long)fx[n].duration)<<40;
-                        }
+				if(m >=0 && m < MAPX*MAPY) {
+					map[m].flags&=~MF_GFX_DEATH;
+					map[m].flags|=((unsigned long long)fx[n].duration)<<40;
+				}
+            }
 
 		}
 	}

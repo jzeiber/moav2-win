@@ -12,10 +12,14 @@ All rights reserved.
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
+#ifndef _WIN32
 #include <unistd.h>
 #include <sys/mman.h>
-#include "cgi-lib.h" /* include the cgi-lib.h header file */
-#include "html-lib.h" /* include the html-lib.h header file */
+#else
+#include "windows-mmap.h"
+#endif
+#include "cgilib/cgi-lib.h" /* include the cgi-lib.h header file */
+#include "cgilib/html-lib.h" /* include the html-lib.h header file */
 #include "gendefs.h"
 #include "data.h"
 
@@ -305,7 +309,7 @@ void view_character(LIST *head)
                 ch[cn].sound);
 
         printf("<tr><td valign=top>Class:</td><td><input type=text name=class value=\"%d\" size=10 maxlength=10></td></tr>",
-                ch[cn].class);
+                ch[cn].class_monster);
 
         printf("<tr><td valign=top>Flags:</td><td>");
         printf("Infrared <input type=checkbox name=flags value=%Lu %s><br>",
@@ -735,7 +739,11 @@ void update_character(LIST *head)
         if (tmp) cn=atoi(tmp);
         else { printf("CN not specified."); return; }
 
+#ifndef _WIN32
         bzero(&ch[cn],sizeof(struct character));
+#else
+		memset(&ch[cn],0,sizeof(struct character));
+#endif
         ch[cn].used=USE_ACTIVE;
 
         tmp=find_val(head,"name");
@@ -766,14 +774,19 @@ void update_character(LIST *head)
         else { printf("SOUND not specified."); return; }
 
         tmp=find_val(head,"class");
-        if (tmp) ch[cn].class=atoi(tmp);
+        if (tmp) ch[cn].class_monster=atoi(tmp);
         else { printf("CLASS not specified."); return; }
 
         cnt=find_val_multi(head,"flags",&tmps);
         lval=0;
         if (cnt)
-                for (n=0; n<cnt; n++)
+                for (n=0; n<cnt; n++) {
+#ifndef _WIN32
                         lval|=atoll(tmps[n]);
+#else
+						lval|=_atoi64(tmps[n]);
+#endif
+				}
         ch[cn].flags=lval;
 
         tmp=find_val(head,"alignment");
@@ -961,7 +974,11 @@ void update_object(LIST *head)
         if (tmp) in=atoi(tmp);
         else { printf("IN not specified."); return; }
 
+#ifndef _WIN32
         bzero(&it[in],sizeof(struct item));
+#else
+		memset(&it[in],0,sizeof(struct item));
+#endif
         it[in].used=USE_ACTIVE;
 
         tmp=find_val(head,"name");
@@ -979,8 +996,13 @@ void update_object(LIST *head)
         cnt=find_val_multi(head,"flags",&tmps);
         lval=0;
         if (cnt)
-                for (n=0; n<cnt; n++)
+                for (n=0; n<cnt; n++) {
+#ifndef _WIN32
                         lval|=atoll(tmps[n]);
+#else
+						lval|=_atoi64(tmps[n]);
+#endif
+				}
         it[in].flags=lval;
 
         tmp=find_val(head,"driver");
@@ -1278,7 +1300,11 @@ void list_object_drivers(LIST *head)
 int main(int argc, char *args[])
 {
         int step=0;
-        int n __attribute__ ((unused));
+        int n 
+#ifdef __GNUC__
+			__attribute__ ((unused))
+#endif
+			;
         char *tmp;
         LIST *head;
         head = is_form_empty() ? NULL : cgi_input_parse();

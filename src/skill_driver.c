@@ -1369,7 +1369,9 @@ void remove_spells(int cn)
 
         for (n=0; n<20; n++) {
                 if ((in=ch[cn].spell[n])==0) continue;
-                it[in].used=USE_EMPTY;
+				if (in>=0 && in<MAXITEM) {
+					it[in].used=USE_EMPTY;
+				}
                 ch[cn].spell[n]=0;
         }
         do_update_char(cn);

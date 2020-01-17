@@ -13,6 +13,11 @@ All rights reserved.
 
 #include "server.h"
 
+#ifndef _WIN32
+#else
+#include "windows-string.h"
+#endif
+
 // You HAVE to use DO_SAYX! not DO_SAY!!
 
 void strlower(char *a)

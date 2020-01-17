@@ -11,7 +11,11 @@ All rights reserved.
 #include <string.h>
 #include <stdlib.h>
 #include <fcntl.h>
+#ifndef _WIN32
 #include <unistd.h>
+#else
+#include <io.h>
+#endif
 
 #include "server.h"
 #include "driver.h"
@@ -833,10 +837,12 @@ void reset_item(int n)
 
 void reset_changed_items(void)
 {
+#ifndef _WIN32
 	static int changelist[]={};
 	int n;
 	
 	for (n=0; n<sizeof(changelist)/sizeof(int); n++) reset_item(changelist[n]);
+#endif
 }
 
 #define RESETTICKER	(TICKS*60)

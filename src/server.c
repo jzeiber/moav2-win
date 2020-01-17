@@ -16,12 +16,22 @@ All rights reserved.
 #include <sys/stat.h>
 #include <stdarg.h>
 #include <fcntl.h>
+#ifndef _WIN32
 #include <unistd.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <netinet/in.h>
 #include <sys/wait.h>
+#else
+#include <io.h>
+#include <ws2tcpip.h>
+#include <process.h>
+#include <intrin.h>
+#include <ws2tcpip.h>
+#include "windows-gettimeofday.h"
+#include "windows-string.h"
+#endif
 #include <errno.h>
 
 #define TBUFSIZE (4096*16)
@@ -35,6 +45,7 @@ struct player player[MAXPLAYER];
 struct see_map *see;
 
 FILE *logfp;
+char *godpassword;
 
 char mod[256];
 
@@ -145,7 +156,11 @@ void new_player(int sock)
                 xlog("new_player (server.c): accept() failed");
                 return;
         }
+#ifndef _WIN32
         ioctl(nsock,FIONBIO,(u_long*)&one);     // non-blocking mode
+#else
+		ioctlsocket(nsock,FIONBIO,(u_long *)&one);
+#endif
 
         //setsockopt(nsock,IPPROTO_TCP,TCP_NODELAY,(const char *)&one,sizeof(int));
         setsockopt(nsock,SOL_SOCKET,SO_SNDBUF,(const char *)&onek,sizeof(int));
@@ -155,7 +170,11 @@ void new_player(int sock)
 
         for (n=1; n<MAXPLAYER; n++) if (!player[n].sock) break;
         if (n==MAXPLAYER) {
+#ifndef _WIN32
                 close(nsock);
+#else
+				closesocket(nsock);
+#endif
                 xlog("new_player (server.c): MAXPLAYER reached");
                 return;
         }
@@ -164,7 +183,11 @@ void new_player(int sock)
 	player[n].zs.zfree=Z_NULL;
 	player[n].zs.opaque=Z_NULL;
 	if (deflateInit(&player[n].zs,9)) {
+#ifndef _WIN32
 		close(nsock);
+#else
+		closesocket(nsock);
+#endif
 		xlog("new_player (server.c): could not init compressor");
 		return;
 	}
@@ -208,17 +231,21 @@ void send_player(int nr)
 
         if (player[nr].iptr<player[nr].optr) {
                 len=OBUFSIZE-player[nr].optr;
-                ptr=player[nr].obuf+player[nr].optr;
+                ptr=(char *)player[nr].obuf+player[nr].optr;
         } else {
                 len=player[nr].iptr-player[nr].optr;
-                ptr=player[nr].obuf+player[nr].optr;
+                ptr=(char *)player[nr].obuf+player[nr].optr;
         }
 
         ret=send(player[nr].sock,ptr,len,0);
         if (ret==-1) {  // send failure
                 plog(nr,"Connection closed (send, %s)",strerror(errno));
                 plr_logout(player[nr].usnr,nr,0);
+#ifndef _WIN32
                 close(player[nr].sock);
+#else
+				closesocket(player[nr].sock);
+#endif
                 player[nr].sock=0;
                 player[nr].ltick=0; player[nr].rtick=0;
 		deflateEnd(&player[nr].zs);
@@ -247,7 +274,11 @@ int csend(int nr,unsigned char *buf,int len)
                 if (tmp==player[nr].optr) {
                         plog(nr,"Connection to too slow, terminated");
                         plr_logout(player[nr].usnr,nr,0);
+#ifndef _WIN32
                         close(player[nr].sock);
+#else
+						closesocket(player[nr].sock);
+#endif
                         player[nr].sock=0;
                         player[nr].ltick=0; player[nr].rtick=0;
 			deflateEnd(&player[nr].zs);
@@ -293,10 +324,14 @@ void xsend(int nr,unsigned char *buf,int len)
         if (player[nr].tptr+len>=TBUFSIZE) {
                 plog(nr,"#INTERNAL ERROR# ticksize too large, terminated");
                 plr_logout(player[nr].usnr,nr,0);
+#ifndef _WIN32
                 close(player[nr].sock);
+#else
+				closesocket(player[nr].sock);
+#endif
                 player[nr].sock=0;
                 player[nr].ltick=0; player[nr].rtick=0;
-		deflateEnd(&player[nr].zs);
+				deflateEnd(&player[nr].zs);
                 return;
         }
 
@@ -319,7 +354,11 @@ void rec_player(int nr)
                 if (errno!=EWOULDBLOCK) {
                         plog(nr,"Connection closed (recv, %s)",strerror(errno));
                         plr_logout(player[nr].usnr,nr,0);
+#ifndef _WIN32
                         close(player[nr].sock);
+#else
+						closesocket(player[nr].sock);
+#endif
                         player[nr].sock=0;
                         player[nr].ltick=0; player[nr].rtick=0;
 			deflateEnd(&player[nr].zs);
@@ -370,10 +409,10 @@ void compress_ticks(void)
 			csize=65536-player[n].zs.avail_out;
 
 			olen=(csize+2)|0x8000;
-			csend(n,(void*)(&olen),2);
+			csend(n,(unsigned char *)(&olen),2);
 			csend(n,obuf,csize);
 		} else {
-			csend(n,(void*)(&olen),2);
+			csend(n,(unsigned char *)(&olen),2);
 			if (ilen) csend(n,player[n].tbuf,ilen);
 		}
 		
@@ -609,14 +648,22 @@ void prof_tick(void)
 
 unsigned long long prof_start(void)
 {
+#ifndef _WIN32
 	return rdtsc();
+#else
+	return __rdtsc();
+#endif
 }
 
 void prof_stop(int task,unsigned long long cycle)
 {
 	unsigned long long td;
 	
+#ifndef _WIN32
 	td=rdtsc()-cycle;
+#else
+	td=__rdtsc()-cycle;
+#endif
 	
 	if (task>=0 && task<100) proftab[task]+=td;
 }
@@ -646,7 +693,11 @@ int main(int argc,char *args[])
         int pidfile;
         char pid_str[10];
 	unsigned long long t1,t2;
-
+#ifdef _WIN32
+	WSADATA wsad;
+#endif
+	
+#ifndef _WIN32
 	nice(5);
 
 	if (argc==1) {
@@ -657,25 +708,58 @@ int main(int argc,char *args[])
 		// open logfile
 		logfp=fopen("server.log","a");
 		if (!logfp) exit(1);
-	} else logfp=stdout;	
+	} else logfp=stdout;
+#else
+		if(argc==1) 
+		{
+			logfp=fopen("server.log","a");
+			if(!logfp)
+			{
+				exit(1);
+			}
+		}
+		else
+		{
+			logfp=stdout;
+		}
+		srand(time(NULL));
+
+		godpassword=NULL;
+
+		WSAStartup(MAKEWORD(2,2),&wsad);
+#endif
 
         xlog("Mercenaries of Astonia Server v%d.%02d.%02d",VERSION>>16,(VERSION>>8)&255,VERSION&255);
         xlog("Copyright (C) 1997-2001 Daniel Brockhaus");
 
+#ifndef _WIN32
         t1=rdtsc(); sleep(1); t2=rdtsc(); t1=t2-t1;
+#else
+		t1=__rdtsc(); Sleep(1000); t2=__rdtsc(); t1=t2-t1;
+#endif
         cycles_per_sek=((t1+25000000)/50000000)*50000000;
         xlog("Speed test: %.0f Mhz",cycles_per_sek/1000000);
 
         // ignore the silly pipe errors:
+#ifndef _WIN32
         signal(SIGPIPE,SIG_IGN);
+#endif
 
+#ifndef _WIN32
         signal(SIGHUP,logrotate);
+#else
+		signal(SIGBREAK,logrotate);
+#endif
 
         // shutdown gracefully if possible:
+#ifndef _WIN32
         signal(SIGQUIT,leave);
+#endif
         signal(SIGINT,leave);
         signal(SIGTERM,leave);
+#ifndef _WIN32
         signal(SIGCHLD,SIG_IGN);
+#endif
 
         for (n=0; n<100; n++) proftab[n]=0;
 
@@ -684,12 +768,18 @@ int main(int argc,char *args[])
                 return 1;
         }
 
+#ifndef _WIN32
+#else
+//	globs->flags&=~GF_DIRTY;
+//	set_cap(10,0);
+#endif
+
 	if (globs->flags&GF_DIRTY) {
                 xlog("Data files were not cleanly unmounted.");
 		if (argc!=2) exit(1);
 	}
 
-        see=malloc(sizeof(struct see_map)*MAXCHARS);
+        see=(struct see_map *)malloc(sizeof(struct see_map)*MAXCHARS);
         if (see==NULL) {
                 xlog("Memory low!");
                 exit(1);
@@ -715,7 +805,11 @@ int main(int argc,char *args[])
                 return 1;
         }
 
+#ifndef _WIN32
         ioctl(sock,FIONBIO,(u_long*)&one);      // non-blocking mode
+#else
+		ioctlsocket(sock,FIONBIO,(u_long *)&one);
+#endif
         setsockopt(sock,SOL_SOCKET,SO_REUSEADDR,(const char *)&one,sizeof(int));
 
         addr.sin_family=AF_INET;
@@ -734,8 +828,8 @@ int main(int argc,char *args[])
 
         for (n=1; n<MAXPLAYER; n++) {
                 player[n].sock=0;
-                player[n].tbuf=malloc(16*TBUFSIZE);
-                player[n].obuf=malloc(OBUFSIZE);
+                player[n].tbuf=(unsigned char *)malloc(16*TBUFSIZE);
+                player[n].obuf=(unsigned char *)malloc(OBUFSIZE);
                 player[n].ltick=0; player[n].rtick=0;
         }
 
@@ -754,6 +848,7 @@ int main(int argc,char *args[])
                 chmod("server.pid", 0664);
         }
 
+		init_godpassword();
         init_node();
         init_lab9();
         god_init_freelist();
@@ -809,7 +904,11 @@ int main(int argc,char *args[])
                                 xlog("Leaving main loop");
                                 // savety measure only. Players should be out already
                                 for (n=1; n<MAXPLAYER; n++)
+#ifndef _WIN32
                                         if (player[n].sock) close(player[n].sock);
+#else
+										if (player[n].sock) closesocket(player[n].sock);
+#endif
                                 doleave=1;
                         }
                 }
@@ -821,6 +920,16 @@ int main(int argc,char *args[])
         xlog("Server down (%d,%d)",see_hit,see_miss);
         unlink("server.pid");
 	if (logfp!=stdout) fclose(logfp);
+
+#ifndef _WIN32
+#else
+	WSACleanup();
+#endif
+
+	if(godpassword) {
+		free(godpassword);
+		godpassword=NULL;
+	}
 
         return 0;
 }

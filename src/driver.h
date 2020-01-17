@@ -32,7 +32,11 @@ int follow_driver(int cn,int co);
 
 int spell_value(int in);
 
-void do_sayx(int cn,char *format,...) __attribute__ ((format(printf,2,3)));
+void do_sayx(int cn,char *format,...)
+#ifdef __GNUC__
+	__attribute__ ((format(printf,2,3)))
+#endif
+;
 
 #define ERR_NONE	0
 #define ERR_SUCCESS	1	// operation finished, successfully

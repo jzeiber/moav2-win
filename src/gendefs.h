@@ -8,7 +8,11 @@ All rights reserved.
 
 #define max(a,b) ((a)>(b) ? (a) : (b))
 #define min(a,b) ((a)<(b) ? (a) : (b))
+#ifndef _WIN32
 #define RANDOM(a)       (random()%(a))
+#else
+#define RANDOM(a)		(rand()%(a))
+#endif
 #define DATDIR          ".dat"
 
 #define VERSION         0x020E07
@@ -37,7 +41,8 @@ All rights reserved.
 #define CNTSAY			(TICKS)
 #define MAXSAY			(TICKS*7)
 
-#define GODPASSWORD "xxxxxxxxxxxx"
+#define DEFAULT_GODPASSWORD "xxxxxxxxxxxx"
+extern char *godpassword;
 
 // wear positions
 #define WN_HEAD                 0

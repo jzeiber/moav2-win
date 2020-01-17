@@ -34,6 +34,7 @@ All rights reserved.
 #define CMAGIC                  ((1U<<28)|(1U<<29)|(1U<<30))
 #define CMAGIC1                 (1U<<28
 
+#pragma pack(push,1)
 struct cmap
 {
 	// for background
@@ -54,8 +55,10 @@ struct cmap
 	// for item
 	short int it_sprite;		// basic sprite of item
 	unsigned char it_status;  	// for items with animation (burning torches etc)
-} __attribute__ ((packed));
+};
+#pragma pack(pop)
 
+#pragma pack(push,1)
 struct cplayer
 {
 	// informative stuff
@@ -115,6 +118,7 @@ struct cplayer
 	// server only:
 	int x,y;
 };
+#pragma pack(pop)
 
 
 // client message types (unsigned char):

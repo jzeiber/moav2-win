@@ -12,7 +12,12 @@ All rights reserved.
 #include <ctype.h>
 #include <time.h>
 #include <fcntl.h>
+#ifndef _WIN32
 #include <unistd.h>
+#else
+#include <io.h>
+#include "windows-string.h"
+#endif
 
 #include "server.h"
 #include "driver.h"
@@ -47,16 +52,32 @@ static char *mkp(void)
 
         buf[0]=0;
 
+#ifndef _WIN32
         n=random()%(sizeof(syl1)/sizeof(char *));
+#else
+		n=rand()%(sizeof(syl1)/sizeof(char *));
+#endif
         strcat(buf,syl1[n]);
         buf[0]=toupper(buf[0]);
 
+#ifndef _WIN32
         n=random()%(sizeof(syl2)/sizeof(char *));
+#else
+		n=rand()%(sizeof(syl2)/sizeof(char *));
+#endif
         strcat(buf,syl2[n]);
 
+#ifndef _WIN32
         if (random()%2) return buf;
+#else
+		if (rand()%2) return buf;
+#endif
 
+#ifndef _WIN32
         n=random()%(sizeof(syl3)/sizeof(char *));
+#else
+		n=rand()%(sizeof(syl3)/sizeof(char *));
+#endif
         strcat(buf,syl3[n]);
 
         return buf;
@@ -69,7 +90,11 @@ void god_init_freelist(void)
 {
 	int n,m;
 
+#ifndef _WIN32
         bzero(free_item_list,sizeof(free_item_list));
+#else
+		memset(free_item_list,0,sizeof(free_item_list));
+#endif
 	
 	for (m=0,n=1; n<MAXITEM; n++) {
 		if (it[n].used==USE_EMPTY) {
@@ -247,7 +272,11 @@ int god_change_pass(int cn,int co,char *pass)
 		else do_char_log(cn,1,"Removed password.\n");
 		chlog(cn,"Removed password");
 		ch[co].flags&=~CF_PASSWD;
+#ifndef _WIN32
 		bzero(ch[co].passwd,sizeof(ch[co].passwd));
+#else
+		memset(ch[co].passwd,0,sizeof(ch[co].passwd));
+#endif
 		return 1;
 	}
         memcpy(ch[co].passwd,pass,15); ch[co].passwd[15]=0;
@@ -1293,7 +1322,7 @@ void god_build_stop(int cn)
 
         /* Retrieve inventory from item holder */
         co = ch[cn].data[CHD_COMPANION];
-        if (!co) {
+        if (!co || co<0 || co>=MAXPLAYER) {
                 do_char_log(cn, 0, "Could not find your item holder!\n");
                 return;
         }
@@ -1301,7 +1330,7 @@ void god_build_stop(int cn)
         /* Transfer inventory */
         for (n=0; n<40; n++) {
                 in = ch[co].item[n];
-                if (in) {
+                if (in<MAXITEM && in) {
                         ch[cn].item[n] = in;
                         ch[co].item[n] = 0;
                         it[in].carried = cn;

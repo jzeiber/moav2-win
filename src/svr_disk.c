@@ -12,8 +12,13 @@ All rights reserved.
 #include <string.h>
 #include <signal.h>
 
+#ifndef _WIN32
 #include <unistd.h>
 #include <sys/mman.h>
+#else
+#include <io.h>
+#include "windows-mmap.h"
+#endif
 #include <errno.h>
 
 #include "server.h"
@@ -64,13 +69,19 @@ int load(void)
                 xlog("Building map");
                 handle=open(DATDIR"/map.dat",O_RDWR|O_CREAT,0600);
         }
+#ifndef _WIN32
         bzero(&tmap, sizeof(struct map));
+#else
+		memset(&tmap,0,sizeof(struct map));
+#endif
         tmap.sprite = SPR_GROUND1;
         if (!extend(handle, MAPSIZE, sizeof(struct map), &tmap)) return -1;
 
         map=mmap(NULL,MAPSIZE,PROT_READ|PROT_WRITE,MAP_SHARED,handle,0);
         if (map==(void*)-1) return -1;
-        close(handle);
+#ifndef _WIN32
+		close(handle);
+#endif
 
         /** CHAR **/
         xlog("Loading CHAR: Item size=%d, file size=%dK",
@@ -85,7 +96,9 @@ int load(void)
 
         ch=mmap(NULL,CHARSIZE,PROT_READ|PROT_WRITE,MAP_SHARED,handle,0);
         if (ch==(void*)-1) return -1;
+#ifndef _WIN32
         close(handle);
+#endif
 
         /** TCHAR **/
         xlog("Loading TCHAR: Item size=%d, file size=%dK",
@@ -100,7 +113,9 @@ int load(void)
 
         ch_temp=mmap(NULL,TCHARSIZE,PROT_READ|PROT_WRITE,MAP_SHARED,handle,0);
         if (ch_temp==(void*)-1) return -1;
+#ifndef _WIN32
         close(handle);
+#endif
 
         /** ITEM **/
         xlog("Loading ITEM: Item size=%d, file size=%dK",
@@ -116,7 +131,9 @@ int load(void)
 
         it=mmap(NULL,ITEMSIZE,PROT_READ|PROT_WRITE,MAP_SHARED,handle,0);
         if (it==(void*)-1) return -1;
+#ifndef _WIN32
         close(handle);
+#endif
 
         /** TITEM **/
         xlog("Loading TITEM: Item size=%d, file size=%dK",
@@ -131,7 +148,9 @@ int load(void)
 
         it_temp=mmap(NULL,TITEMSIZE,PROT_READ|PROT_WRITE,MAP_SHARED,handle,0);
         if (it==(void*)-1) return -1;
+#ifndef _WIN32
         close(handle);
+#endif
 
         /** EFFECT **/
         xlog("Loading EFFECT: Item size=%d, file size=%dK",
@@ -146,7 +165,9 @@ int load(void)
 
         fx=mmap(NULL,EFFECTSIZE,PROT_READ|PROT_WRITE,MAP_SHARED,handle,0);
         if (fx==(void*)-1) return -1;
+#ifndef _WIN32
         close(handle);
+#endif
 
         /** GLOBS **/
         xlog("Loading GLOBS: Item size=%d, file size=%db",
@@ -161,7 +182,9 @@ int load(void)
 
         globs=mmap(NULL,sizeof(struct global),PROT_READ|PROT_WRITE,MAP_SHARED,handle,0);
         if (globs==(void*)-1) return -1;
+#ifndef _WIN32
         close(handle);
+#endif
 
         return 0;
 }

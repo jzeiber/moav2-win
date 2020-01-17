@@ -11,8 +11,12 @@ All rights reserved.
 #include <fcntl.h>
 #include <string.h>
 #include <time.h>
+#ifndef _WIN32
 #include <unistd.h>
 #include <sys/mman.h>
+#else
+#include "windows-mmap.h"
+#endif
 #include <errno.h>
 
 #include "gendefs.h"
@@ -516,7 +520,11 @@ static void info(int cn)
 
 	fflush(stdout);
 	cap=globs->ticker;
+#ifndef _WIN32
 	sleep(1);
+#else
+	Sleep(1000);
+#endif
 	if (cap==globs->ticker) printf("Server seems to be down.");
 	else printf("Server seems to be up.");
 }

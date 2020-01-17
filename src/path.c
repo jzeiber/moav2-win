@@ -76,11 +76,14 @@ int init_node(void)
 {
         nmap=calloc(MAPX*MAPY,sizeof(struct node *));
         if (!nmap) return 0;
+		memset(nmap,0,MAPX*MAPY*sizeof(struct node *));
 
         nodes=malloc(sizeof(struct node)*MAXNODE);
         if (!nodes) return 0;
+		memset(nodes,0,sizeof(struct node)*MAXNODE);
         
         bad=calloc(MAPX*MAPY,sizeof(struct badtarget));
+		memset(bad,0,MAPX*MAPY*sizeof(struct badtarget));
 
         return 1;
 }
@@ -146,7 +149,11 @@ int add_node(int x,int y,int dir,int ccost,int cdir)
         return 1;
 }
 
-static inline int dr_check_target(int m)
+static
+#ifndef _WIN32
+inline
+#endif
+int dr_check_target(int m)
 {
         int in;
 
