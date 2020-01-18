@@ -17,6 +17,7 @@ All rights reserved.
 #include <sys/mman.h>
 #else
 #include "windows-mmap.h"
+#include <direct.h>
 #endif
 #include "cgilib/cgi-lib.h" /* include the cgi-lib.h header file */
 #include "cgilib/html-lib.h" /* include the html-lib.h header file */
@@ -312,17 +313,17 @@ void view_character(LIST *head)
                 ch[cn].class_monster);
 
         printf("<tr><td valign=top>Flags:</td><td>");
-        printf("Infrared <input type=checkbox name=flags value=%Lu %s><br>",
+        printf("Infrared <input type=checkbox name=flags value=%llu %s><br>",
                 CF_INFRARED,(ch[cn].flags&CF_INFRARED) ? "checked" : "");
-        printf("Undead <input type=checkbox name=flags value=%Lu %s><br>",
+        printf("Undead <input type=checkbox name=flags value=%llu %s><br>",
                 CF_UNDEAD,(ch[cn].flags&CF_UNDEAD) ? "checked" : "");
-        printf("Respawn <input type=checkbox name=flags value=%Lu %s><br>",
+        printf("Respawn <input type=checkbox name=flags value=%llu %s><br>",
                 CF_RESPAWN,(ch[cn].flags&CF_RESPAWN) ? "checked" : "");
-        printf("No-Sleep <input type=checkbox name=flags value=%Lu %s><br>",
+        printf("No-Sleep <input type=checkbox name=flags value=%llu %s><br>",
                 CF_NOSLEEP,(ch[cn].flags&CF_NOSLEEP) ? "checked" : "");
-        printf("Merchant <input type=checkbox name=flags value=%Lu %s><br>",
+        printf("Merchant <input type=checkbox name=flags value=%llu %s><br>",
                 CF_MERCHANT,(ch[cn].flags&CF_MERCHANT) ? "checked" : "");
-        printf("Simple Animation <input type=checkbox name=flags value=%Lu %s><br>",
+        printf("Simple Animation <input type=checkbox name=flags value=%llu %s><br>",
                 CF_SIMPLE,(ch[cn].flags&CF_SIMPLE) ? "checked" : "");
         printf("</td></tr>");
 
@@ -491,77 +492,77 @@ void view_object(LIST *head)
                 it[in].description);
 
         printf("<tr><td valign=top>Flags:</td><td>");
-        printf("Moveblock <input type=checkbox name=flags value=%Lu %s><br>",
+        printf("Moveblock <input type=checkbox name=flags value=%llu %s><br>",
                 IF_MOVEBLOCK,(it[in].flags&IF_MOVEBLOCK) ? "checked" : "");
-        printf("Sightblock <input type=checkbox name=flags value=%Lu %s><br>",
+        printf("Sightblock <input type=checkbox name=flags value=%llu %s><br>",
                 IF_SIGHTBLOCK,(it[in].flags&IF_SIGHTBLOCK) ? "checked" : "");
-        printf("Take-Able <input type=checkbox name=flags value=%Lu %s><br>",
+        printf("Take-Able <input type=checkbox name=flags value=%llu %s><br>",
                 IF_TAKE,(it[in].flags&IF_TAKE) ? "checked" : "");
-        printf("Look-Able <input type=checkbox name=flags value=%Lu %s><br>",
+        printf("Look-Able <input type=checkbox name=flags value=%llu %s><br>",
                 IF_LOOK,(it[in].flags&IF_LOOK) ? "checked" : "");
-        printf("Look-Special <input type=checkbox name=flags value=%Lu %s><br>",
+        printf("Look-Special <input type=checkbox name=flags value=%llu %s><br>",
                 IF_LOOKSPECIAL,(it[in].flags&IF_LOOKSPECIAL) ? "checked" : "");
-        printf("Use <input type=checkbox name=flags value=%Lu %s><br>",
+        printf("Use <input type=checkbox name=flags value=%llu %s><br>",
                 IF_USE,(it[in].flags&IF_USE) ? "checked" : "");
-        printf("Use-Special <input type=checkbox name=flags value=%Lu %s><br>",
+        printf("Use-Special <input type=checkbox name=flags value=%llu %s><br>",
                 IF_USESPECIAL,(it[in].flags&IF_USESPECIAL) ? "checked" : "");
-        printf("Use-Destroy <input type=checkbox name=flags value=%Lu %s><br>",
+        printf("Use-Destroy <input type=checkbox name=flags value=%llu %s><br>",
                 IF_USEDESTROY,(it[in].flags&IF_USEDESTROY) ? "checked" : "");
-        printf("Use-Activate <input type=checkbox name=flags value=%Lu %s><br>",
+        printf("Use-Activate <input type=checkbox name=flags value=%llu %s><br>",
                 IF_USEACTIVATE,(it[in].flags&IF_USEACTIVATE) ? "checked" : "");
-        printf("Use-Deactivate <input type=checkbox name=flags value=%Lu %s><br>",
+        printf("Use-Deactivate <input type=checkbox name=flags value=%llu %s><br>",
                 IF_USEDEACTIVATE,(it[in].flags&IF_USEDEACTIVATE) ? "checked" : "");
-        printf("Re-Activate <input type=checkbox name=flags value=%Lu %s><br>",
+        printf("Re-Activate <input type=checkbox name=flags value=%llu %s><br>",
                 IF_REACTIVATE,(it[in].flags&IF_REACTIVATE) ? "checked" : "");
-        printf("No-Repair <input type=checkbox name=flags value=%Lu %s><br>",
+        printf("No-Repair <input type=checkbox name=flags value=%llu %s><br>",
                 IF_NOREPAIR,(it[in].flags&IF_NOREPAIR) ? "checked" : "");
 
-        printf("Hidden (data[9])<input type=checkbox name=flags value=%Lu %s><br>",
+        printf("Hidden (data[9])<input type=checkbox name=flags value=%llu %s><br>",
                 IF_HIDDEN,(it[in].flags&IF_HIDDEN) ? "checked" : "");
-        printf("Step-Action <input type=checkbox name=flags value=%Lu %s><br>",
+        printf("Step-Action <input type=checkbox name=flags value=%llu %s><br>",
                 IF_STEPACTION,(it[in].flags&IF_STEPACTION) ? "checked" : "");
-        printf("Expire-Proc <input type=checkbox name=flags value=%Lu %s><br>",
+        printf("Expire-Proc <input type=checkbox name=flags value=%llu %s><br>",
                 IF_EXPIREPROC,(it[in].flags&IF_EXPIREPROC) ? "checked" : "");
 
-        printf("Fast Light Age <input type=checkbox name=flags value=%Lu %s><br>",
+        printf("Fast Light Age <input type=checkbox name=flags value=%llu %s><br>",
                 IF_LIGHTAGE,(it[in].flags&IF_LIGHTAGE) ? "checked" : "");
 
-        printf("Unique <input type=checkbox name=flags value=%Lu %s><br>",
+        printf("Unique <input type=checkbox name=flags value=%llu %s><br>",
                 IF_UNIQUE,(it[in].flags&IF_UNIQUE) ? "checked" : "");
 
-        printf("Spell <input type=checkbox name=flags value=%Lu %s><br>",
+        printf("Spell <input type=checkbox name=flags value=%llu %s><br>",
                 IF_SPELL,(it[in].flags&IF_SPELL) ? "checked" : "");
-        printf("Shop-Destroy (quest items)<input type=checkbox name=flags value=%Lu %s><br>",
+        printf("Shop-Destroy (quest items)<input type=checkbox name=flags value=%llu %s><br>",
                 IF_SHOPDESTROY,(it[in].flags&IF_SHOPDESTROY) ? "checked" : "");
-        printf("Laby-Destroy (quest items)<input type=checkbox name=flags value=%Lu %s><br>",
+        printf("Laby-Destroy (quest items)<input type=checkbox name=flags value=%llu %s><br>",
                 IF_LABYDESTROY,(it[in].flags&IF_LABYDESTROY) ? "checked" : "");
-        printf("No-Depot (quest items)<input type=checkbox name=flags value=%Lu %s><br>",
+        printf("No-Depot (quest items)<input type=checkbox name=flags value=%llu %s><br>",
                 IF_NODEPOT,(it[in].flags&IF_NODEPOT) ? "checked" : "");
-        printf("No Market (no price change)<input type=checkbox name=flags value=%Lu %s><br>",
+        printf("No Market (no price change)<input type=checkbox name=flags value=%llu %s><br>",
                 IF_NOMARKET,(it[in].flags&IF_NOMARKET) ? "checked" : "");
-        printf("Donate (cheap items)<input type=checkbox name=flags value=%Lu %s><br>",
+        printf("Donate (cheap items)<input type=checkbox name=flags value=%llu %s><br>",
                 IF_DONATE,(it[in].flags&IF_DONATE) ? "checked" : "");
-        printf("Single-Age <input type=checkbox name=flags value=%Lu %s><br>",
+        printf("Single-Age <input type=checkbox name=flags value=%llu %s><br>",
                 IF_SINGLEAGE,(it[in].flags&IF_SINGLEAGE) ? "checked" : "");
-        printf("Always expire when inactive <input type=checkbox name=flags value=%Lu %s><br>",
+        printf("Always expire when inactive <input type=checkbox name=flags value=%llu %s><br>",
                 IF_ALWAYSEXP1,(it[in].flags&IF_ALWAYSEXP1) ? "checked" : "");
-        printf("Always expire when active <input type=checkbox name=flags value=%Lu %s><br>",
+        printf("Always expire when active <input type=checkbox name=flags value=%llu %s><br>",
                 IF_ALWAYSEXP2,(it[in].flags&IF_ALWAYSEXP2) ? "checked" : "");
-        printf("Armor <input type=checkbox name=flags value=%Lu %s><br>",
+        printf("Armor <input type=checkbox name=flags value=%llu %s><br>",
                 IF_ARMOR,(it[in].flags&IF_ARMOR) ? "checked" : "");
-        printf("Magic <input type=checkbox name=flags value=%Lu %s><br>",
+        printf("Magic <input type=checkbox name=flags value=%llu %s><br>",
                 IF_MAGIC,(it[in].flags&IF_MAGIC) ? "checked" : "");
-        printf("Misc <input type=checkbox name=flags value=%Lu %s><br>",
+        printf("Misc <input type=checkbox name=flags value=%llu %s><br>",
                 IF_MISC,(it[in].flags&IF_MISC) ? "checked" : "");
-        printf("Weapon: Sword <input type=checkbox name=flags value=%Lu %s><br>",
+        printf("Weapon: Sword <input type=checkbox name=flags value=%llu %s><br>",
                 IF_WP_SWORD,(it[in].flags&IF_WP_SWORD) ? "checked" : "");
-        printf("Weapon: Dagger <input type=checkbox name=flags value=%Lu %s><br>",
+        printf("Weapon: Dagger <input type=checkbox name=flags value=%llu %s><br>",
                 IF_WP_DAGGER,(it[in].flags&IF_WP_DAGGER) ? "checked" : "");
-        printf("Weapon: Axe <input type=checkbox name=flags value=%Lu %s><br>",
+        printf("Weapon: Axe <input type=checkbox name=flags value=%llu %s><br>",
                 IF_WP_AXE,(it[in].flags&IF_WP_AXE) ? "checked" : "");
-        printf("Weapon: Club <input type=checkbox name=flags value=%Lu %s><br>",
+        printf("Weapon: Club <input type=checkbox name=flags value=%llu %s><br>",
                 IF_WP_STAFF,(it[in].flags&IF_WP_STAFF) ? "checked" : "");
-        printf("Weapon: Two-Handed <input type=checkbox name=flags value=%Lu %s><br>",
+        printf("Weapon: Two-Handed <input type=checkbox name=flags value=%llu %s><br>",
                 IF_WP_TWOHAND,(it[in].flags&IF_WP_TWOHAND) ? "checked" : "");
         printf("</td></tr>");
 
@@ -1306,10 +1307,21 @@ int main(int argc, char *args[])
 #endif
 			;
         char *tmp;
+		char buf[256];
+		FILE *fd;
         LIST *head;
         head = is_form_empty() ? NULL : cgi_input_parse();
+		
+		fd=fopen("moav2dir.txt","r");
+		if(fd) {
+			memset(buf,0,256);
+			if(fgets(buf,255,fd)) {
+				chdir(buf);
+			}
+			fclose(fd);
+		}
 
-        chdir("/home/merc");
+        //chdir("/home/merc");
 
         printf("Content-Type: text/html\n\n");
         printf("<html><head><title>World Builder</title><META HTTP-EQUIV=\"PRAGMA\" CONTENT=\"NO-CACHE\"></head>\n");

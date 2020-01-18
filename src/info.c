@@ -16,6 +16,7 @@ All rights reserved.
 #include <sys/mman.h>
 #else
 #include "windows-mmap.h"
+#include <direct.h>
 #endif
 #include <errno.h>
 
@@ -37,8 +38,13 @@ struct global *globs;
 static int load(void)
 {
 	int handle;
+	char cwd[256];
 
+#ifndef _WIN32
 	handle=open(DATDIR"/map.dat",O_RDONLY);
+#else
+	handle=open(DATDIR"/map.dat",O_RDWR);
+#endif
 	if (handle==-1)	{
 		fprintf(stderr,"map.dat does not exist.\n");
 		return -1;
@@ -51,7 +57,11 @@ static int load(void)
 	}
 	close(handle);
 
+#ifndef _WIN32
 	handle=open(DATDIR"/char.dat",O_RDONLY);
+#else
+	handle=open(DATDIR"/char.dat",O_RDWR);
+#endif
 	if (handle==-1)	{
 		fprintf(stderr,"char.dat does not exist.\n");
 		return -1;
@@ -64,7 +74,11 @@ static int load(void)
 	}
 	close(handle);
 
+#ifndef _WIN32
 	handle=open(DATDIR"/item.dat",O_RDONLY);
+#else
+	handle=open(DATDIR"/item.dat",O_RDWR);
+#endif
 	if (handle==-1)	{
 		fprintf(stderr,"item.dat does not exist.\n");
 		return -1;
@@ -77,7 +91,11 @@ static int load(void)
 	}
 	close(handle);
 
+#ifndef _WIN32
 	handle=open(DATDIR"/effect.dat",O_RDONLY);
+#else
+	handle=open(DATDIR"/effect.dat",O_RDWR);
+#endif
 	if (handle==-1)	{
 		fprintf(stderr,"effect.dat does not exist.\n");
 		return -1;
@@ -90,7 +108,11 @@ static int load(void)
 	}
 	close(handle);
 
+#ifndef _WIN32
 	handle=open(DATDIR"/global.dat",O_RDONLY);
+#else
+	handle=open(DATDIR"/global.dat",O_RDWR);
+#endif
 	if (handle==-1)	{
 		fprintf(stderr,"global.dat does not exist.\n");
 		return -1;
@@ -599,12 +621,23 @@ static char *query;
 int main(int argc,char *args[])
 {
 	int cn=0,srank=0;
+	FILE *fd;
+	char buf[256];
 	
 	query=getenv("QUERY_STRING");
 	if (query && !strncmp(query,"cn=",3)) cn=atoi(query+3);
 	if (query && !strncmp(query,"rank=",5)) srank=atoi(query+5);
 
-	chdir("/home/merc");
+	fd=fopen("moav2dir.txt","r");
+	if(fd) {
+		memset(buf,0,256);
+		if(fgets(buf,255,fd)) {
+			chdir(buf);
+		}
+		fclose(fd);
+	}
+
+	//chdir("/home/merc");
 
 	printf("Content-Type: text/html\n\n");
 	printf("<html><head><title>Server Info</title></head>\n");
@@ -638,6 +671,7 @@ int main(int argc,char *args[])
 	
 	if (load()) { printf("<b>Cannot access server data. Exiting... (%s)</b></td></tr></table>",strerror(errno)); exit(0); }
 
+#ifndef _WIN32
 	if (args[0]) {
 		if (strcmp(args[0],"who.cgi")==0) who();
 		else if (strcmp(args[0],"top.cgi")==0) top();
@@ -650,6 +684,20 @@ int main(int argc,char *args[])
                 else if (strcmp(args[0],"dtop.cgi")==0) dtop(srank);
 		else printf("Internal error... (%s)\n",args[0]);
 	} else printf("Internal error...");
+#else
+	if(args[0]) {
+		if(strstr(args[0],"who.")) who();
+		else if(strstr(args[0],"top.")) top();
+		else if(strstr(args[0],"info.")) info(cn);
+		else if(strstr(args[0],"hog.")) hog();
+		else if(strstr(args[0],"gods.")) gods();
+		else if(strstr(args[0],"staff.")) staff();
+		else if(strstr(args[0],"effects.")) effects();
+		else if(strstr(args[0],"xtop.")) xtop(srank);
+		else if(strstr(args[0],"dtop.")) dtop(srank);
+		else printf("Internal error... (%s)\n",args[0]);
+	} else printf("Internal error...");
+#endif
 
 	unload();
 
