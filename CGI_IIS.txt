@@ -1,0 +1,25 @@
+CGI Programs for IIS
+
+Create directories cgi-bin and cgi-imp in the wwwroot directory of your web server.
+
+Create a file named moav2dir.txt in the cgi-bin and cgi-imp directories.  This file should contain the full path to the moav2 server directory.  This should just be a single line without a newline at the end.
+
+Copy acct.exe into the cgi-imp directory and info.exe into the cgi-bin directory.  Create copies of info.exe in the cgi-bin directory named who.exe, top.exe, hog.exe, gods.exe, staff.exe, effects.exe, xtop.exe, and dtop.exe.
+
+In the IIS Manager, right click on the cgi-bin folder and convert to an application.  Use the default settings.  Do the same for cgi-imp.
+
+Edit the application settings for both cgi-bin and cgi-imp and change the "Connect as" user to a user that has read/write access to the moav2 server directory and subdirectories.
+
+Click the cgi-bin application and double click on Handler Mappings.  Add a new Module Mapping with these settings (make sure the request path ends in cgi not exe):
+	Request path: info.cgi
+	Module: CgiModule
+	Executable (browse to the info.exe): C:\path\to\cgi-bin\info.exe
+	Name: Mercenaries of Astonia v2 Info CGI
+	
+Allow it to create/update the CGI Restrictions.  If it does not automatically create the CGI Restrictions, you can go to the root server item in the IIS Manager, open "ISAPI and CGI Restrictions" and create a new entry to allow the executable to run.
+
+Do the above Module Mapping and Restrictions for all executables in the cgi-bin and cgi-imp directories.
+
+If everything was set up correctly, you can browse to the cgi apps http://localhost/cgi-bin/info.cgi or http://localhost/cgi-imp/acct.cgi.
+
+You can set up further access restrictions to these as needed in the IIS Manager.
