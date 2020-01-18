@@ -15,6 +15,5 @@ Setup / Usage Notes
 
 Other Notes
 * The mmap implementation needs some work, but seems to function for this use case
-* The cgi programs need some changes to be useful in Windows
 * The server hasn't been tested for running any significant length of time, but it seems to be stable.
 * Due to the use of select for the network code, the server won't be able to handle more than FD_SETSIZE connections, which is typically 64 on Windows.  If you don't limit the maximum connections to less than this value, the server will probably crash when the limit is reached.
