@@ -509,7 +509,11 @@ void game_loop(int sock)
         tv.tv_sec=0;
         tv.tv_usec=tdiff;
         prof=prof_start();
+#ifndef _WIN32
         select(0,NULL,NULL,NULL,&tv);
+#else
+		Sleep(tv.tv_usec/1000);
+#endif
         prof_stop(43,prof);
 
 }
