@@ -795,8 +795,10 @@ int main(int argc,char *args[])
                 else if (strcasecmp("wipe",args[1])==0) { pop_wipe(); unload(); exit(0); }
                 else if (strcasecmp("light",args[1])==0) { init_lights(); unload(); exit(0); }
                 else if (strcasecmp("skill",args[1])==0) { pop_skill(); unload(); exit(0); }
-		else if (strcasecmp("load",args[1])==0) { pop_load_all_chars(); unload(); exit(0); }
-		else if (strcasecmp("save",args[1])==0) { pop_save_all_chars(); unload(); exit(0); }
+		        else if (strcasecmp("load",args[1])==0) { pop_load_all_chars(); unload(); exit(0); }
+		        else if (strcasecmp("save",args[1])==0) { pop_save_all_chars(); unload(); exit(0); }
+				else if (strcasecmp("cleardirty",args[1])==0) { globs->flags&=~GF_DIRTY; unload(); exit(0); }
+				else { unload(); exit(0); }
         }
 
         sock=socket(PF_INET,SOCK_STREAM,0);
