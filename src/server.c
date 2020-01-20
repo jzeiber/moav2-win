@@ -692,7 +692,7 @@ int see_hit=0,see_miss=0;
 
 int main(int argc,char *args[])
 {
-        int sock,n,one=1,doleave=0,ltimer=0;
+        int sock,n,one=1,doleave=0,ltimer=0,ii;
         struct sockaddr_in addr;
         int pidfile;
         char pid_str[10];
@@ -841,6 +841,13 @@ int main(int argc,char *args[])
 
         for (n=1; n<MAXCHARS; n++) {
                 if (ch[n].used==USE_ACTIVE) plr_logout(n,0,LO_SHUTDOWN);
+				// character data[37] - data[40] is id of last player seen by npc, used to determine if they've already talked to them.  Reset this when the server restarts
+				// data[37] must be filled with a value!=0 or the npc won't talk (see npc_see in driver.c)
+				if (((ch[n].flags&CF_PLAYER) != CF_PLAYER) && ch[n].data[37]!=0) {
+					for(ii=37; ii<41; ++ii) {
+						ch[n].data[ii]=1;
+					}
+				}
         }
 
         srand(time(NULL));
