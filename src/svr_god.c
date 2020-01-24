@@ -1745,7 +1745,7 @@ void god_pents(int cn, int newsolvenum)
 		if(it[n].used==USE_EMPTY) continue;
 		if(it[n].driver!=33) continue;
 		tot++;
-		if(it[n].active!=1) continue;
+		if(it[n].active!=-1) continue;
 		act++;
 	}
 
