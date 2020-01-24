@@ -2365,9 +2365,13 @@ void plr_getmap_fast(int nr)
         for (n=YSCUTF*TILEX+XSCUTF,m=xs+ys*MAPX,y=ys; y<ye; y++,m+=MAPX-TILEX+XSCUTF+XECUTF,n+=XSCUTF+XECUTF) {
                 for (x=xs; x<xe; x++,n++,m++) {
 
-                        if (do_all || map[m].it || map[m].ch || mcmp(&player[nr].xmap[n],&map[m],sizeof(struct map))) {	// any change on map data?
-                                mcpy(&player[nr].xmap[n],&map[m],sizeof(struct map)); 		// remember changed values
-			} else continue;
+					if(n>0 && m>0) {
+						if (do_all || map[m].it || map[m].ch || mcmp(&player[nr].xmap[n],&map[m],sizeof(struct map))) {	// any change on map data?
+							mcpy(&player[nr].xmap[n],&map[m],sizeof(struct map)); 		// remember changed values
+						} else continue;
+					} else {
+						memset(&player[nr].xmap[n],0,sizeof(struct map));
+					}
 
                         // field outside of map? then display empty one.
 			if (x<0 || y<0 || x>=MAPX || y>=MAPY) { empty_field(smap,n); continue; }
