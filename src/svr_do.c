@@ -737,6 +737,7 @@ void do_help(int cn,char *topic)
 		do_char_log(cn,3,"#staff <player>         make a player staffer.\n");
 		do_char_log(cn,3,"#summon <name> [<rank> [<which>]]\n");
 		do_char_log(cn,3,"#tavern                 log off quickly.\n");
+		do_char_log(cn,3,"#pents [<#>]            show or assign pents.\n");
 		do_char_log(cn,3," \n");
 	}
 	if (ch[cn].flags&(CF_GREATERGOD)) {
@@ -1639,9 +1640,10 @@ void do_command(int cn, char *ptr)
                 if (prefix(cmd,"purpl") && !f_g)        { break; };
                 if (prefix(cmd,"purple") && !f_m&&!f_g) { do_become_purple(cn); return; };
                 if (prefix(cmd,"peras") && f_g)         { break; };
-                if (prefix(cmd,"perase") && f_g) 	{ god_erase(cn,dbatoi(arg[1]),1); return; };
-		if (prefix(cmd,"pktcnt") && f_g) 	{ pkt_list(); return; };
-		if (prefix(cmd,"pktcl") && f_g) 	{ cl_list(); return; };
+                if (prefix(cmd,"perase") && f_g)        { god_erase(cn,dbatoi(arg[1]),1); return; };
+				if (prefix(cmd,"pents") && f_g)         { god_pents(cn,atoi(arg[1])); return; };
+				if (prefix(cmd,"pktcnt") && f_g) 	{ pkt_list(); return; };
+				if (prefix(cmd,"pktcl") && f_g) 	{ cl_list(); return; };
                 break;
         case 'r':
                 if (prefix(cmd,"rac"))                  { break; };

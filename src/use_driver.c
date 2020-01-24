@@ -1765,7 +1765,7 @@ int spawn_penta_enemy(int in)
         } else return cn;
 }
 
-static int penta_needed=54;
+int penta_needed=54;
 
 void solved_pentagram(int cn,int in)
 {

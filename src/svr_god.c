@@ -22,6 +22,8 @@ All rights reserved.
 #include "server.h"
 #include "driver.h"
 
+extern int penta_needed;
+
 static char *mkp(void)
 {
         static char buf[40];
@@ -1733,6 +1735,26 @@ void god_erase(int cn,int co,int erase_player)
                 chlog(cn, "IMP: Erased NPC %d (%-.20s).", co, ch[co].name);
                 do_char_log(cn,1,"NPC %d (%-.20s) is no more.\n", co, ch[co].name);
         }
+}
+
+void god_pents(int cn, int newsolvenum)
+{
+	int act=0,tot=0,n=0;
+
+	for(n=0; n<MAXITEM; n++) {
+		if(it[n].used==USE_EMPTY) continue;
+		if(it[n].driver!=33) continue;
+		tot++;
+		if(it[n].active!=1) continue;
+		act++;
+	}
+
+	if(newsolvenum>0) {
+		penta_needed=newsolvenum;
+	}
+
+	do_char_log(cn,1,"Pentagrams activated %d / %d.  Solved at %d.\n",act,tot,penta_needed);
+
 }
 
 void god_kick(int cn,int co)

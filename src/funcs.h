@@ -146,6 +146,7 @@ void god_tavern(int cn);
 void god_build(int cn,int x);
 void god_set_flag(int cn,int co,unsigned long long flag);
 void god_erase(int cn,int co,int insist);
+void god_pents(int cn, int newsolvenum);
 int god_cmp_item2tmp(int in,int tmp);
 int god_getitemtmp(int in);
 void god_drdata(int cn,int co,int n,int val);
