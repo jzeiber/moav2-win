@@ -127,7 +127,9 @@ static int load(void)
 static void unload(void)
 {
         if (munmap(ch,TCHARSIZE)) perror("munmap(ch)");
+		if (munmap(cha,CHARSIZE)) perror("munmap(cha)");
         if (munmap(it,TITEMSIZE)) perror("munmap(it)");
+		if (munmap(ita,ITEMSIZE)) perror("munmap(ita)");
         if (munmap(globs,sizeof(struct global))) perror("munmap(globs)");
 }
 
