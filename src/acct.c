@@ -328,6 +328,12 @@ void character_stats(struct character *chr, int showupdate, struct item *itemarr
         printf("<tr><td valign=top>Sprite base:</td><td><input type=text name=sprite value=\"%d\" size=10 maxlength=10></td></tr>",
                 chr->sprite);
 
+#ifdef IMGCGI
+		if(chr->sprite) {
+			printf("<tr><td></td><td><img src=\"imgcgi.cgi?spr=%d\"></td></tr>",chr->sprite);
+		}
+#endif
+
         printf("<tr><td valign=top>Sound base:</td><td><input type=text name=sound value=\"%d\" size=10 maxlength=10></td></tr>",
                 chr->sound);
 
@@ -723,6 +729,20 @@ void view_object(LIST *head)
         printf("<td><input type=text name=sprite_2 value=\"%d\" size=10 maxlength=10></td></tr>",
                 it[in].sprite[1]);
 
+#ifdef IMGCGI
+		if(it[in].sprite[0] || it[in].sprite[1]) {
+			printf("<tr><td></td><td>");
+			if(it[in].sprite[0]) {
+				printf("<img src=\"imgcgi.cgi?spr=%d\">",it[in].sprite[0]);
+			}
+			printf("</td><td>");
+			if(it[in].sprite[1]) {
+				printf("<img src=\"imgcgi.cgi?spr=%d\">",it[in].sprite[1]);
+			}
+			printf("</td></tr>");
+		}
+#endif
+
         printf("<tr><td>Animation-Status:</td><td><input type=text name=status_1 value=\"%d\" size=10 maxlength=10></td>",
                 it[in].status[0]);
         printf("<td><input type=text name=status_2 value=\"%d\" size=10 maxlength=10></td></tr>",
@@ -741,6 +761,12 @@ void view_object(LIST *head)
                 it[in].power);
         printf("<tr><td>Sprite Overr.:</td><td><input type=text name=spr_ovr value=\"%d\" size=10 maxlength=10></td></tr>",
                 it[in].sprite_override);
+
+#ifdef IMGCGI
+		if(it[in].sprite_override) {
+			printf("<tr><td></td><td><img src=\"imgcgi.cgi?spr=%d\"></td></tr>",it[in].sprite_override);
+		}
+#endif
                 
        	printf("<tr><td>Min. Rank:</td><td><input type=text name=min_rank value=\"%d\" size=10 maxlength=10></td></tr>",
                 it[in].min_rank);

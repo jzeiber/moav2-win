@@ -1,4 +1,8 @@
-cmake_minimum_required(VERSION 2.4)
+cmake_minimum_required(VERSION 3.14)
+
+if(COMMAND cmake_policy)
+	cmake_policy(SET CMP0091 NEW)
+endif(COMMAND cmake_policy)
 
 project(moav2srv)
 

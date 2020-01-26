@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.4)
+cmake_minimum_required(VERSION 3.14)
 if(COMMAND cmake_policy)
 	cmake_policy(SET CMP0003 NEW)
 	cmake_policy(SET CMP0005 NEW)
@@ -29,6 +29,7 @@ endif(WIN32)
 
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS")
 add_executable(merc ${CLIENT_SRC} ${CLIENT_PLATFORM_SRC})
+set_property(TARGET merc PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 find_package(ZLIB REQUIRED)
 if(ZLIB_FOUND)

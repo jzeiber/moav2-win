@@ -4,7 +4,9 @@ Create directories cgi-bin and cgi-imp in the wwwroot directory of your web serv
 
 Create a file named moav2dir.txt in the cgi-bin and cgi-imp directories.  This file should contain the full path to the moav2 server directory.  This should just be a single line without a newline at the end.
 
-Copy acct.exe into the cgi-imp directory and info.exe into the cgi-bin directory.  Create copies of info.exe in the cgi-bin directory named who.exe, top.exe, hog.exe, gods.exe, staff.exe, effects.exe, xtop.exe, and dtop.exe.
+Create a file named moav2datadir.txt in the cgi-imp directory.  This file should contain the full path to the moav2 client directory with graphics data files.  This should just be a single line without a newline at the end.
+
+Copy acct.exe and imgcgi.exe into the cgi-imp directory and info.exe into the cgi-bin directory.  Create copies of info.exe in the cgi-bin directory named who.exe, top.exe, hog.exe, gods.exe, staff.exe, effects.exe, xtop.exe, and dtop.exe.
 
 In the IIS Manager, right click on the cgi-bin folder and convert to an application.  Use the default settings.  Do the same for cgi-imp.
 
