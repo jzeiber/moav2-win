@@ -1757,6 +1757,35 @@ void god_pents(int cn, int newsolvenum)
 
 }
 
+void god_repair(int cn, int id)
+{
+	if(id>0 && id<MAXITEM) {
+		if(it[id].used != USE_EMPTY) {
+			it[id].damage_state=0;
+			it[id].current_damage=0;
+			it[id].current_age[0]=0;
+			it[id].current_age[1]=0;
+
+			// reset sprite and value if item was created from a template
+			if(it[id].temp && it[id].temp<MAXTITEM) {
+				if(it_temp[it[id].temp].sprite[0]) {
+					it[id].sprite[0]=it_temp[it[id].temp].sprite[0];
+				}
+				if(it_temp[it[id].temp].sprite[1]) {
+					it[id].sprite[1]=it_temp[it[id].temp].sprite[1];
+				}
+				if(it_temp[it[id].temp].value > it[id].value) {
+					it[id].value=it_temp[it[id].temp].value;
+				}
+			}
+
+			it[id].flags!=IF_UPDATE;
+
+			do_char_log(cn,1,"Repaired %s.\n",it[id].name);
+		}
+	}
+}
+
 void god_kick(int cn,int co)
 {
         if (co == 0) {

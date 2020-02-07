@@ -730,14 +730,16 @@ void do_help(int cn,char *topic)
 		do_char_log(cn,3,"#imp <player> <amount>  make player an Imp.\n");
 		do_char_log(cn,3,"#mailpass <player>      send passwd to admin.\n");
 		do_char_log(cn,3,"#password <name>        change a plr's passwd.\n");
+		do_char_log(cn,3,"#pents [<#>]            show or assign pents.\n");
 		do_char_log(cn,3,"#perase <player>        total player erase.\n");
 		do_char_log(cn,3,"#pol <player>           make player POH leader.\n");
 		//do_char_log(cn,3,"#race <player> <temp>   new race for a player(avoid).\n");
+		do_char_log(cn,3,"#repair <id>            repair item.\n");
 		do_char_log(cn,3,"#send <player> <target> teleport player to target.\n");
 		do_char_log(cn,3,"#staff <player>         make a player staffer.\n");
 		do_char_log(cn,3,"#summon <name> [<rank> [<which>]]\n");
 		do_char_log(cn,3,"#tavern                 log off quickly.\n");
-		do_char_log(cn,3,"#pents [<#>]            show or assign pents.\n");
+
 		do_char_log(cn,3," \n");
 	}
 	if (ch[cn].flags&(CF_GREATERGOD)) {
@@ -1651,6 +1653,7 @@ void do_command(int cn, char *ptr)
                 if (prefix(cmd,"raise") && f_giu)       { god_raise_char(cn,dbatoi_self(cn,arg[1]),atoi(arg[2])); return; };
                 if (prefix(cmd,"recall") && f_giu)      { god_goto(cn,cn,"512","512"); return; };
                 if (prefix(cmd,"respawn") && f_giu)     { do_respawn(cn,atoi(arg[1])); return; };
+				if (prefix(cmd,"repair") && f_g)		{ god_repair(cn,atoi(arg[1])); return; };
                 break;
         case 's':
                 if (prefix(cmd,"s"))                    { break; };
