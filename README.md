@@ -20,3 +20,4 @@ Other Notes
 
 Client Notes
 * The client needs the graphics and sound data files found in the original archives
+* Windows 8 or later may need to place ddraw.dll from [DDrawCompat](https://github.com/narzoul/DDrawCompat) into the directory with merc.exe if you are experiencing issues in fullscreen mode

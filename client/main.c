@@ -41,8 +41,6 @@ extern int tricky_flag;
 
 HWND desk_hwnd;
 HINSTANCE hinst;
-int window_title_height=0;
-int window_border_width=0;
 
 int init_sound(HWND hwnd);
 void engine(void);
@@ -450,23 +448,20 @@ HWND InitWindow(HINSTANCE hInstance,int nCmdShow)
 		wr.left=40;
 		wr.bottom=640;
 		wr.right=840;
-		AdjustWindowRect(&wr,WS_VISIBLE|WS_BORDER|WS_SYSMENU|WS_MINIMIZEBOX,1);
-		window_title_height=40-wr.top;
-		window_border_width=40-wr.left;
+		AdjustWindowRect(&wr,WS_VISIBLE | WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,0);
 		desk_hwnd=hWnd=CreateWindowEx(
 								 0,
 								 "DDCWin",
 								 buf,
-								 WS_VISIBLE|WS_BORDER|WS_SYSMENU|WS_MINIMIZEBOX,
-								 //10,10,802,621,
-								 10,10,800+(window_border_width*2),600+(window_title_height+window_border_width),
+								 WS_VISIBLE | WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
+								 10,10,wr.right-wr.left,wr.bottom-wr.top,
 								 NULL,
 								 NULL,
 								 hInstance,
 								 NULL);
 	}
 
-        SetFocus(hWnd);
+	SetFocus(hWnd);
 	ShowWindow(hWnd,nCmdShow);
 	UpdateWindow(hWnd);
 

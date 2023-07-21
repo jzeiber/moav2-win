@@ -78,8 +78,6 @@ void *xcalloc(int size1,int size2)
 }
 
 extern HWND desk_hwnd;
-extern int window_title_height;
-extern int window_border_width;
 
 #define TILE 32
 unsigned short background=0;
@@ -1008,13 +1006,10 @@ void dd_flip_windowed(void)
 {
 	RECT rect;
 
-	GetWindowRect(desk_hwnd,&rect);
+	GetClientRect(desk_hwnd,&rect);
 
-	// determine bounds of window in a more sensible way !!!
-	rect.bottom-=window_border_width;
-	rect.left+=window_border_width;
-	rect.right-=window_border_width;
-	rect.top+=window_title_height;;
+	// translate from client coords to screen coords
+	MapWindowPoints(desk_hwnd,NULL,(LPPOINT)(&rect),2);
 
 	sur1->lpVtbl->Blt(sur1,&rect,sur2,NULL,DDBLT_WAIT,NULL);
 }
